@@ -48,9 +48,9 @@ public class MainActivity extends AppCompatActivity {
                         float x = Math.abs(event.values[0]) > 0.09 ? event.values[0] : 0;
                         float y = Math.abs(event.values[1]) > 0.09 ? event.values[1] : 0;
                         float z = Math.abs(event.values[2]) > 0.09 ? event.values[2] : 0;
-                        mx = mx > x ? mx : x;
-                        my = my > y ? my : y;
-                        mz = mz > z ? mz : z;
+                        mx = Math.abs(mx) > Math.abs(x) ? mx : x;
+                        my = Math.abs(my) > Math.abs(y) ? my : y;
+                        mz = Math.abs(mz) > Math.abs(z) ? mz : z;
                         mTextView1.setText(String.valueOf(x) +" " + String.valueOf(mx));
                         mTextView2.setText(String.valueOf(y) +" " + String.valueOf(my));
                         mTextView3.setText(String.valueOf(z) +" " + String.valueOf(mz));
