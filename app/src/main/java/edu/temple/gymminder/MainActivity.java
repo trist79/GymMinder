@@ -54,9 +54,9 @@ public class MainActivity extends AppCompatActivity {
                         mTextView1.setText(String.valueOf(x) +" " + String.valueOf(mx));
                         mTextView2.setText(String.valueOf(y) +" " + String.valueOf(my));
                         mTextView3.setText(String.valueOf(z) +" " + String.valueOf(mz));
-                        result1+=x;
-                        result2+=y;
-                        result3+=z;
+                        result1+=x + ",";
+                        result2+=y + ",";
+                        result3+=z + ",";
                     }
 
                     @Override
