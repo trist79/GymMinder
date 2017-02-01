@@ -1,5 +1,11 @@
 package edu.temple.gymminder;
 
+import android.util.Log;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -14,4 +20,6 @@ public class ExampleUnitTest {
     public void addition_isCorrect() throws Exception {
         assertEquals(4, 2 + 2);
     }
+
+
 }
