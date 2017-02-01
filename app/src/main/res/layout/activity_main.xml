@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         android:id="@+id/mainFrame" />
 
-    <TextView
+<!--    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/testView"
@@ -25,5 +25,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/signupButton"
-        android:text="Signup" />
+        android:text="Signup" />-->
 </RelativeLayout>
