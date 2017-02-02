@@ -9,6 +9,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 /**
  * Created by rober_000 on 1/31/2017.
  */
@@ -42,8 +44,42 @@ public class DbHelper {
         database.child("users").child(String.valueOf(user.getUid())).child(workoutName).setValue(workout);
     }
 
+    public void retrieveWorkout(String workoutName, FirebaseUser user){
+        database.child("users").child(user.getUid()).child(workoutName).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        listener.updateUi(dataSnapshot.getValue(Workout.class));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                }
+        );
+    }
+
+    public void retrieveAllWorkouts(FirebaseUser user){
+        database.child("users").child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Workout> workouts = new ArrayList<>();
+                for(DataSnapshot ds : dataSnapshot.getChildren()){
+                    workouts.add(ds.getValue(Workout.class));
+                    listener.respondToWorkouts(workouts);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     public void testRetrieve(){
-        database.child("users").child("2").addListenerForSingleValueEvent(new ValueEventListener() {
+        database.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 listener.updateUi(dataSnapshot.getValue(Workout.class));
