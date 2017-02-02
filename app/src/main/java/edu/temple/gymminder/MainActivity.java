@@ -1,5 +1,6 @@
 package edu.temple.gymminder;
 
+import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
@@ -18,8 +19,9 @@ public class MainActivity extends AppCompatActivity implements SigninListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupAuth();
+        auth.signOut(); //TODO remove when not testing signin/signup
         FragmentManager fragmentManager = getSupportFragmentManager();
-        if (auth.getCurrentUser() != null) {
+        if (auth.getCurrentUser() == null) {
             fragmentManager.beginTransaction()
                     .replace(R.id.mainFrame, new SigninFragment())
                     .commit();
