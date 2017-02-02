@@ -31,7 +31,6 @@ public class SigninFragment extends Fragment {
         // Required empty public constructor
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -71,10 +70,8 @@ public class SigninFragment extends Fragment {
                                 } else {
                                     Log.d("Auth", "Oh no");
                                 }
-
                             }
                         });
-
             }
         });
         return v;
@@ -84,6 +81,10 @@ public class SigninFragment extends Fragment {
     public void onAttach(Context c){
         super.onAttach(c);
         listener = (SigninListener) c;
+    }
+
+    public interface SigninListener {
+        void goToMain();
     }
 
 }

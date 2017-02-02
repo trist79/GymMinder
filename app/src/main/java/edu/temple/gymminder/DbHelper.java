@@ -41,7 +41,7 @@ public class DbHelper {
 
 
     public void addNewWorkout(Workout workout, String workoutName, FirebaseUser user){
-        database.child("users").child(String.valueOf(user.getUid())).child(workoutName).setValue(workout);
+        database.child("users").child(user.getUid()).child(workoutName).setValue(workout);
     }
 
     public void retrieveWorkout(String workoutName, FirebaseUser user){
@@ -67,6 +67,7 @@ public class DbHelper {
                 ArrayList<Workout> workouts = new ArrayList<>();
                 for(DataSnapshot ds : dataSnapshot.getChildren()){
                     workouts.add(ds.getValue(Workout.class));
+                    Log.d("Database", "Workouts retrieved" + workouts.get(0));
                     listener.respondToWorkouts(workouts);
                 }
             }

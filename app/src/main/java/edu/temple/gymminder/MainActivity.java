@@ -10,7 +10,8 @@ import android.util.Log;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-public class MainActivity extends AppCompatActivity implements SigninListener {
+public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
+        MainFragment.DetailListener {
 
     private FirebaseAuth auth;
 
@@ -19,7 +20,7 @@ public class MainActivity extends AppCompatActivity implements SigninListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupAuth();
-        auth.signOut(); //TODO remove when not testing signin/signup
+//        auth.signOut(); //TODO remove when not testing signin/signup
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (auth.getCurrentUser() == null) {
             fragmentManager.beginTransaction()
@@ -52,6 +53,16 @@ public class MainActivity extends AppCompatActivity implements SigninListener {
     public void goToMain() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mainFrame, new MainFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void goToDetail(Workout workout) {
+        DetailFragment detailFragment = DetailFragment.newInstance(workout);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainFrame, detailFragment)
+                .addToBackStack(null)
                 .commit();
     }
 }
