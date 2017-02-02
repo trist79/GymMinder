@@ -9,10 +9,9 @@ import android.util.Log;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-public class MainActivity extends AppCompatActivity implements DatabaseListener, SigninListener {
+public class MainActivity extends AppCompatActivity implements SigninListener {
 
     private FirebaseAuth auth;
-    DbHelper dbHelper = new DbHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +30,6 @@ public class MainActivity extends AppCompatActivity implements DatabaseListener,
         }
     }
 
-    @Override
-    public void updateUi(Workout workout) {
-//        ((TextView)findViewById(R.id.testView)).setText(workout.toString());
-    }
 
     public void setupAuth(){
         auth = FirebaseAuth.getInstance();

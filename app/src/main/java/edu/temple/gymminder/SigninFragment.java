@@ -42,7 +42,19 @@ public class SigninFragment extends Fragment {
         v.findViewById(R.id.signinButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                auth.signInWithEmailAndPassword(email.getText().toString(),
+                        password.getText().toString())
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if(task.isSuccessful()){
+                                    Log.d("Auth", "Login complete");
+                                    listener.goToMain();
+                                } else {
+                                    Log.d("Auth", "Login failed");
+                                }
+                            }
+                        });
             }
         });
         v.findViewById(R.id.signupButton).setOnClickListener(new View.OnClickListener() {
@@ -59,7 +71,6 @@ public class SigninFragment extends Fragment {
                                 } else {
                                     Log.d("Auth", "Oh no");
                                 }
-                                Log.d("Auth", task.getResult().toString());
 
                             }
                         });
