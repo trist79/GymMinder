@@ -10,6 +10,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
@@ -21,7 +22,8 @@ public class DataActivity extends Activity {
     public final static String EXTRA_MAX_VELOCITY = "Cathy I'm lost";
     public final static String EXTRA_AVG_VELOCITY = "I don't know why";
 
-    private ArrayList<LinkedList<Float>> data = new ArrayList<>(3);
+    private ArrayList<LinkedList<Float>> data = new ArrayList<>(4);
+    private LinkedList<Long> timestamps = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,7 @@ public class DataActivity extends Activity {
                 mx = Math.abs(mx) > Math.abs(x) ? mx : x;
                 my = Math.abs(my) > Math.abs(y) ? my : y;
                 mz = Math.abs(mz) > Math.abs(z) ? mz : z;
+                timestamps.add(event.timestamp);
                 addUnfiltered(x, y, z);
             }
 
@@ -66,6 +69,8 @@ public class DataActivity extends Activity {
             data.get(0).addLast(ox + alpha * (x - ox));
             data.get(1).addLast(oy + alpha * (y - oy));
             data.get(2).addLast(oz + alpha * (z - oz));
+        } else {
+            addUnfiltered(x, y, z);
         }
     }
 
@@ -84,4 +89,41 @@ public class DataActivity extends Activity {
         this.setResult(RESULT_OK, intent);
         finish();
     }
+
+    void result(int reps){
+        Intent intent = new Intent();
+        float[] f = maxAndAvg(integrate(data.get(2)));
+        intent.putExtra(EXTRA_REPS_DONE, reps);
+        intent.putExtra(EXTRA_MAX_VELOCITY, f[0]);
+        intent.putExtra(EXTRA_AVG_VELOCITY, f[1]);
+        this.setResult(RESULT_OK, intent);
+        finish();
+    }
+
+    float[] integrate(LinkedList<Float> list){
+        float conversion = 1.0f / 1000000000.0f;
+        float[] velocity = new float[data.get(0).size()-1];
+        Iterator<Float> iterator = list.listIterator();
+        int i = 0;
+        while(iterator.hasNext() && timestamps.size() > i+1){
+            velocity[i] = iterator.next() * (timestamps.get(i+1) - timestamps.get(i)) * conversion;
+            i++;
+        }
+        return velocity;
+    }
+
+    float[] maxAndAvg(float[] floats){
+        float f[] = new float[2];
+        float max = floats[0];
+        float sum = 0;
+        for(int i=0;i<floats.length;i++){
+            max = max > floats[i] ? max : floats[i];
+            sum+=floats[i];
+        }
+        f[0] = max;
+        f[1] = sum / floats.length;
+        return f;
+    }
+
+
 }
