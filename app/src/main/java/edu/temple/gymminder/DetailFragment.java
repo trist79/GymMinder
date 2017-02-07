@@ -1,7 +1,9 @@
 package edu.temple.gymminder;
 
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,6 +21,10 @@ import java.util.ArrayList;
  */
 public class DetailFragment extends Fragment {
 
+    private static final String WORKOUT_ARG = "SPARROW THAN A SNAIL";
+    public static final String EXTRA_WORKOUT = "I heard cathedral bells";
+    public static final String EXTRA_NUMREPS = "Juniper and lamplight";
+    public static final int RESULT_REPS = 7073;
 
     public DetailFragment() {
         // Required empty public constructor
@@ -27,7 +33,7 @@ public class DetailFragment extends Fragment {
     public static DetailFragment newInstance(Workout workout){
         DetailFragment detailFragment = new DetailFragment();
         Bundle args = new Bundle();
-        args.putSerializable("workout", workout);
+        args.putSerializable(WORKOUT_ARG, workout);
         detailFragment.setArguments(args);
         return detailFragment;
     }
@@ -38,7 +44,7 @@ public class DetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_detail, container, false);
-        Workout workout = (Workout) getArguments().getSerializable("workout");
+        Workout workout = (Workout) getArguments().getSerializable(WORKOUT_ARG);
         if(workout == null) return v;
         ((TextView) v.findViewById(R.id.textView)).setText(workout.toString());
 
@@ -66,7 +72,7 @@ public class DetailFragment extends Fragment {
                 LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 final Exercise exercise = (Exercise) getItem(position);
                 if(exercise.completed==null) exercise.initActive();
-                View item = inflater.inflate(R.layout.item_exercise, parent, false);
+                View item = inflater.inflate(R.layout.item_exercise, parent, false); //TODO view reuse
                 ((TextView) item.findViewById(R.id.workoutName)).setText(exercise.workout);
                 final TextView setProgress = (TextView) item.findViewById(R.id.setNumber);
                 setProgress.setText(getString(R.string.sets_progress, 0, exercise.sets));
@@ -76,12 +82,25 @@ public class DetailFragment extends Fragment {
                         if(exercise.setsDone >= exercise.sets) return;
                         setProgress.setText(getString(R.string.sets_progress,
                                 ++exercise.setsDone, exercise.sets));
+                        Intent intent = new Intent(getContext(), DataActivity.class);
+                        intent.putExtra(EXTRA_WORKOUT, exercise.workout);
+                        intent.putExtra(EXTRA_NUMREPS, exercise.reps);
+                        startActivityForResult(intent, RESULT_REPS);
                     }
                 });
                 return item;
             }
         });
         return v;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == RESULT_REPS){
+            if(resultCode == Activity.RESULT_OK){
+
+            }
+        }
     }
 
 }

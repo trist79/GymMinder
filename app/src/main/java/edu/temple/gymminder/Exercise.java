@@ -1,14 +1,17 @@
 package edu.temple.gymminder;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+
 /**
  * Created by rober_000 on 1/31/2017.
  */
 
-public class Exercise {
+public class Exercise implements Serializable {
     public String workout;
     public int sets;
     public int reps;
-    public int[] completed = null;
+    public ArrayList<Integer> completed = null;
     public int setsDone;
 
     public Exercise(){
@@ -21,6 +24,14 @@ public class Exercise {
         this.reps = reps;
     }
 
+    public Exercise(String workout, int sets, int reps, ArrayList<Integer> completed, int setsDone){
+        this.workout = workout;
+        this.sets = sets;
+        this.reps = reps;
+        this.completed = completed;
+        this.setsDone = setsDone;
+    }
+
     public Exercise(Exercise exercise){
         workout = exercise.workout;
         sets = exercise.sets;
@@ -29,8 +40,8 @@ public class Exercise {
     }
 
     void initActive(){
-        completed = new int[sets];
-        for(int i=0;i<sets;i++) completed[i] = -1;
+        completed = new ArrayList<>(sets);
+        for(int i=0;i<sets;i++) completed.add(-1);
         setsDone = 0;
     }
 
