@@ -1,5 +1,6 @@
 package edu.temple.gymminder;
 
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -33,6 +34,10 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 
     public void setupAuth(){
         auth = FirebaseAuth.getInstance();

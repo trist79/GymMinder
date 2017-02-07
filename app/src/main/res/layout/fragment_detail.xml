@@ -5,12 +5,10 @@
     android:orientation="vertical"
     tools:context="edu.temple.gymminder.DetailFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textView"
-        android:text="@string/hello_blank_fragment" />
+        android:id="@+id/textView" />
 
     <ListView
         android:layout_width="match_parent"

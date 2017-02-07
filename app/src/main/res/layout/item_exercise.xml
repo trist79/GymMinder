@@ -19,15 +19,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/setNumber" />
-
-
     </LinearLayout>
-
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/startTrackerButton"
         android:text="@string/start_button_text"/>
-
 </LinearLayout>

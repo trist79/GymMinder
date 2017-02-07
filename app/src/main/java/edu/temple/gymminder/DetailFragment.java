@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,7 +69,6 @@ public class DetailFragment extends Fragment {
 
             @Override
             public View getView(final int position, View convertView, ViewGroup parent) {
-
                 LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 final Exercise exercise = (Exercise) getItem(position);
                 if(exercise.completed==null) exercise.initActive();
@@ -98,8 +98,11 @@ public class DetailFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == RESULT_REPS){
             if(resultCode == Activity.RESULT_OK){
-
+                int repsDone = data.getIntExtra(DataActivity.EXTRA_REPS_DONE, -1);
+                Log.d("OuO", String.valueOf(repsDone));
             }
+        } else {
+            Log.d("OnO", "Something went wrong");
         }
     }
 
