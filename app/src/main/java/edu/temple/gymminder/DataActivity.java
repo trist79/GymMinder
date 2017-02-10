@@ -12,6 +12,7 @@ import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by rober_000 on 2/7/2017.
@@ -21,14 +22,15 @@ public class DataActivity extends Activity {
     public final static String EXTRA_REPS_DONE = "We smoked the last one an hour ago";
     public final static String EXTRA_MAX_VELOCITY = "Cathy I'm lost";
     public final static String EXTRA_AVG_VELOCITY = "I don't know why";
+    private final float conversion = 1.0f / 1000000000.0f;
 
-    private ArrayList<LinkedList<Float>> data = new ArrayList<>(4);
-    private LinkedList<Long> timestamps = new LinkedList<>();
+    private ArrayList<ArrayList<Float>> data = new ArrayList<>(4);
+    private ArrayList<Long> timestamps = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        for(int i=0;i<3;i++) data.add(new LinkedList<Float>());
+        for(int i=0;i<3;i++) data.add(new ArrayList<Float>());
         result(4, 5, 6);
     }
 
@@ -36,20 +38,38 @@ public class DataActivity extends Activity {
         SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         sm.registerListener(new SensorEventListener() {
-            float mx = 0;
-            float my = 0;
-            float mz = 0;
-
+            float avgNode[] = null;
             @Override
             public void onSensorChanged(SensorEvent event) {
                 //Get values, ignore low value movement
+                for(int i=0; i<3; i++){
+                    float x = Math.abs(event.values[i] > 0.09 ? event.values[i] : 0);
+                    float duration = event.timestamp - timestamps.get(timestamps.size()-1) * conversion;
+                    if(duration < .1){
+                        //average the points with sum node
+                        if(avgNode == null){
+                            avgNode = new float[]{ x, duration };
+                        } else {
+                            avgNode[0] = avgNode[0] * (avgNode[1] / (avgNode[1] + duration))
+                                    + x * (duration / (avgNode[1] + duration));
+                            avgNode[1] = avgNode[1] + duration;
+                            duration = avgNode[1];
+                        }
+                        //After averaging is done it's possible we now need to interpolate
+                    } if(duration > .1) {
+                        //interpolate
+                        float old = data.get(i).get(data.get(i).size()-1);
+                        x = old + (.1f) * (x - old)/(duration);
+                        data.get(i).add(x);
+                        avgNode = null;
+                    } else if(duration == .1){
+                        data.get(i).add(x);
+                        avgNode = null;
+                    }
+                }
                 float x = Math.abs(event.values[0]) > 0.09 ? event.values[0] : 0;
                 float y = Math.abs(event.values[1]) > 0.09 ? event.values[1] : 0;
                 float z = Math.abs(event.values[2]) > 0.09 ? event.values[2] : 0;
-                //Get max acceleration
-                mx = Math.abs(mx) > Math.abs(x) ? mx : x;
-                my = Math.abs(my) > Math.abs(y) ? my : y;
-                mz = Math.abs(mz) > Math.abs(z) ? mz : z;
                 timestamps.add(event.timestamp);
                 addUnfiltered(x, y, z);
             }
@@ -63,12 +83,12 @@ public class DataActivity extends Activity {
 
     void addWithLowPassFilter(float x, float y, float z, float alpha){
         if(data.get(0).size() > 0) {
-            float ox = data.get(0).getLast();
-            float oy = data.get(1).getLast();
-            float oz = data.get(2).getLast();
-            data.get(0).addLast(ox + alpha * (x - ox));
-            data.get(1).addLast(oy + alpha * (y - oy));
-            data.get(2).addLast(oz + alpha * (z - oz));
+            float ox = data.get(0).get(data.size()-1);
+            float oy = data.get(1).get(data.size()-1);
+            float oz = data.get(2).get(data.size()-1);
+            data.get(0).add(ox + alpha * (x - ox));
+            data.get(1).add(oy + alpha * (y - oy));
+            data.get(2).add(oz + alpha * (z - oz));
         } else {
             addUnfiltered(x, y, z);
         }
@@ -76,9 +96,9 @@ public class DataActivity extends Activity {
 
 
     void addUnfiltered(float x, float y, float z){
-        data.get(0).addLast(x);
-        data.get(1).addLast(y);
-        data.get(2).addLast(z);
+        data.get(0).add(x);
+        data.get(1).add(y);
+        data.get(2).add(z);
     }
 
     void result(int reps, int mv, int av){
@@ -100,8 +120,7 @@ public class DataActivity extends Activity {
         finish();
     }
 
-    float[] integrate(LinkedList<Float> list){
-        float conversion = 1.0f / 1000000000.0f;
+    float[] integrate(List<Float> list){
         float[] velocity = new float[data.get(0).size()-1];
         Iterator<Float> iterator = list.listIterator();
         int i = 0;

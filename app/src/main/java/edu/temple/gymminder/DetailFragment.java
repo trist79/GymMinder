@@ -69,17 +69,19 @@ public class DetailFragment extends Fragment {
 
             @Override
             public View getView(final int position, View convertView, ViewGroup parent) {
+                //TODO refactor into using Fragments maybe
                 LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 final Exercise exercise = (Exercise) getItem(position);
                 if(exercise.completed==null) exercise.initActive();
                 View item = inflater.inflate(R.layout.item_exercise, parent, false); //TODO view reuse
-                ((TextView) item.findViewById(R.id.workoutName)).setText(exercise.workout);
+                ((TextView) item.findViewById(R.id.workoutName)).setText(exercise.toString());
                 final TextView setProgress = (TextView) item.findViewById(R.id.setNumber);
                 setProgress.setText(getString(R.string.sets_progress, 0, exercise.sets));
                 item.findViewById(R.id.startTrackerButton).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if(exercise.setsDone >= exercise.sets) return;
+
                         setProgress.setText(getString(R.string.sets_progress,
                                 ++exercise.setsDone, exercise.sets));
                         Intent intent = new Intent(getContext(), DataActivity.class);

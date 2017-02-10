@@ -45,6 +45,9 @@ public class Exercise implements Serializable {
         setsDone = 0;
     }
 
-
+    @Override
+    public String toString(){
+        return workout + ": " + reps + "x" + sets;
+    }
 
 }
