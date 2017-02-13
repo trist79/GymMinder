@@ -10,9 +10,6 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by rober_000 on 2/7/2017.
@@ -68,7 +65,7 @@ public class DataActivity extends Activity {
 
     void result(int reps){
         Intent intent = new Intent();
-        float[] f = DataUtils.maxAndAvg(DataUtils.integrate(data.get(2)));
+        float[] f = DataUtils.maxAndAvg(DataUtils.riemann(data.get(2)));
         intent.putExtra(EXTRA_REPS_DONE, reps);
         intent.putExtra(EXTRA_MAX_VELOCITY, f[0]);
         intent.putExtra(EXTRA_AVG_VELOCITY, f[1]);

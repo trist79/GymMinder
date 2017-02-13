@@ -14,7 +14,7 @@ public class DataUtils {
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<Long> timestamps;
-    private static final float conversion = 1.0f / 1000000000.0f;
+    public static final float conversion = 1.0f / 1000000000.0f;
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
         data = dataList;
@@ -41,15 +41,21 @@ public class DataUtils {
         data.get(2).add(z);
     }
 
-    static float[] integrate(List<Float> list) {
-        float[] velocity = new float[data.get(0).size() - 1];
+    static float[] riemann(List<Float> list) {
+        float[] velocity = new float[list.size()-1];
         Iterator<Float> iterator = list.listIterator();
         int i = 0;
         while (iterator.hasNext() && timestamps.size() > i + 1) {
-            velocity[i] = iterator.next() * (timestamps.get(i + 1) - timestamps.get(i)) * conversion;
+            velocity[i] = iterator.next() * ((timestamps.get(i + 1) - timestamps.get(i)) * conversion);
             i++;
         }
         return velocity;
+    }
+
+    static float sum(float[] floats){
+        float sum = 0f;
+        for(float f : floats) sum+=f;
+        return sum;
     }
 
     static float[] maxAndAvg(float[] floats) {
