@@ -17,12 +17,20 @@ public class DataUtils {
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
+    private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
 
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
         data = dataList;
         timestamps = time;
+        avgNode = null;
+    }
+
+    static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time, ArrayList<ArrayList<Float>> processedDataList) {
+        data = dataList;
+        timestamps = time;
+        processedData = processedDataList;
         avgNode = null;
     }
 
@@ -96,9 +104,11 @@ public class DataUtils {
                 float old = data.get(i).get(data.get(i).size() - 1);
                 x = old + (.1f) * (x - old) / (duration);
                 data.get(i).add(x);
+                applySGFilterRealtime(data.size(), data.get(i), processedData.get(i));
                 avgNode = null;
             } else if (duration == .1) {
                 data.get(i).add(x);
+                applySGFilterRealtime(data.size(), data.get(i), processedData.get(i));
                 avgNode = null;
             }
         }
@@ -110,8 +120,8 @@ public class DataUtils {
         for(int i=0; i < filtered.size(); i++){
             for(int j=0; j < SG_FILTER.length; i++){
                 float sum = 0;
-                if(i + j - 3 > 0 && i + j - 3 < data.size()){
-                    sum+= SG_FILTER[j] * data.get(i+j-3);
+                if(i + j - SG_FILTER.length/2 > 0 && i + j - SG_FILTER.length/2 < data.size()){
+                    sum+= SG_FILTER[j] * data.get(i+j-SG_FILTER.length/2);
                 }
                 filtered.add(i, sum/sum(SG_FILTER));
             }
@@ -119,8 +129,14 @@ public class DataUtils {
         return data;
     }
 
-    static void applySGFilterRealtime(){
-
+    static void applySGFilterRealtime(int index, ArrayList<Float> data, ArrayList<Float> processedData){
+        for(int i=0; i<SG_FILTER.length; i++){
+            float sum = 0;
+            if(i + index - SG_FILTER.length/2 > 0 && i + index - SG_FILTER.length/2 < data.size()){
+                sum += SG_FILTER[i] * data.get(i + index - SG_FILTER.length/2);
+            }
+            processedData.add(index, sum/sum(SG_FILTER));
+        }
     }
 
 }
