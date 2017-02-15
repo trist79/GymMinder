@@ -11,10 +11,14 @@ import java.util.List;
  */
 
 public class DataUtils {
+
+    public static final float CONVERSION = 1.0f / 1000000000.0f;
+    public static final int[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
+
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<Long> timestamps;
-    public static final float conversion = 1.0f / 1000000000.0f;
+
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
         data = dataList;
@@ -46,7 +50,7 @@ public class DataUtils {
         Iterator<Float> iterator = list.listIterator();
         int i = 0;
         while (iterator.hasNext() && timestamps.size() > i + 1) {
-            velocity[i] = iterator.next() * ((timestamps.get(i + 1) - timestamps.get(i)) * conversion);
+            velocity[i] = iterator.next() * ((timestamps.get(i + 1) - timestamps.get(i)) * CONVERSION);
             i++;
         }
         return velocity;
@@ -74,7 +78,7 @@ public class DataUtils {
     static void process(SensorEvent event) {
         for (int i = 0; i < 3; i++) {
             float x = Math.abs(event.values[i] > 0.09 ? event.values[i] : 0);
-            float duration = event.timestamp - timestamps.get(timestamps.size()-1) * conversion;
+            float duration = event.timestamp - timestamps.get(timestamps.size()-1) * CONVERSION;
                 if (duration < .1) {
                 //average the points with sum node
                 if (avgNode == null) {
@@ -98,6 +102,25 @@ public class DataUtils {
                 avgNode = null;
             }
         }
+    }
+
+
+    static ArrayList<Float> applySavitzkyGolayFilter(ArrayList<Float> data){
+        ArrayList<Float> filtered = new ArrayList<>(data.size());
+        for(int i=0; i < filtered.size(); i++){
+            for(int j=0; j < SG_FILTER.length; i++){
+                float sum = 0;
+                if(i + j - 3 > 0 && i + j - 3 < data.size()){
+                    sum+= SG_FILTER[j] * data.get(i+j-3);
+                }
+                filtered.add(i, sum);
+            }
+        }
+        return data;
+    }
+
+    static void applySGFilterRealtime(){
+
     }
 
 }
