@@ -34,6 +34,12 @@ public class DataUtils {
         avgNode = null;
     }
 
+    /**
+     * @param x x acceleration to be added into array
+     * @param y y acceleration to be added into array
+     * @param z z acceleration to be added into array
+     * @param alpha low pass filter parameter
+     */
     static void addWithLowPassFilter(float x, float y, float z, float alpha) {
         if (data.get(0).size() > 0) {
             float ox = data.get(0).get(data.get(0).size() - 1);
@@ -53,6 +59,12 @@ public class DataUtils {
         data.get(2).add(z);
     }
 
+    /**
+     * This is an intermediate step in approximating the definite integral of data points, for
+     * use with sum
+     * @param list list of float values for which to calculate riemann rectangles
+     * @return array of riemann rectangles
+     */
     static float[] riemann(List<Float> list) {
         float[] velocity = new float[list.size()-1];
         Iterator<Float> iterator = list.listIterator();
@@ -64,12 +76,20 @@ public class DataUtils {
         return velocity;
     }
 
+    /**
+     * @param floats list of floats to be summed
+     * @return the sum of values in floats
+     */
     static float sum(float[] floats){
         float sum = 0f;
         for(float f : floats) sum+=f;
         return sum;
     }
 
+    /**
+     * @param floats array of floats for which to find the maximum and average value
+     * @return a float array whose first value is the max and whose second value is the average
+     */
     static float[] maxAndAvg(float[] floats) {
         float f[] = new float[2];
         float max = floats[0];
@@ -83,10 +103,24 @@ public class DataUtils {
         return f;
     }
 
+    /**
+     * Adds data point into the uniformly-spaced and smoothed data array
+     *
+     * avgNode is used by this method when the real polling frequency of the device
+     * is higher than the desired polling frequency, and represents all data points not yet
+     * placed into the data array because the time difference is still too small
+     *
+     * If the polling frequency of the device is lower than the desired polling frequency it
+     * interpolates a data point at the desired frequency using the newest data point and the
+     * data point most recently added into the data array
+     *
+     * @param event SensorEvent containing data point to be processed
+     */
     static void process(SensorEvent event) {
         for (int i = 0; i < 3; i++) {
             float x = Math.abs(event.values[i] > 0.09 ? event.values[i] : 0);
             float duration = event.timestamp - timestamps.get(timestamps.size()-1) * CONVERSION;
+                //TODO: Separate averaging and interpolation into their own methods
                 if (duration < .1) {
                 //average the points with sum node
                 if (avgNode == null) {
@@ -104,17 +138,22 @@ public class DataUtils {
                 float old = data.get(i).get(data.get(i).size() - 1);
                 x = old + (.1f) * (x - old) / (duration);
                 data.get(i).add(x);
-                applySGFilterRealtime(data.size(), data.get(i), processedData.get(i));
+                applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
                 avgNode = null;
             } else if (duration == .1) {
                 data.get(i).add(x);
-                applySGFilterRealtime(data.size(), data.get(i), processedData.get(i));
+                applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
                 avgNode = null;
             }
         }
     }
 
 
+    /**
+     *
+     * @param data array of data points to be smoothed
+     * @return smoothed data points
+     */
     static ArrayList<Float> applySavitzkyGolayFilter(ArrayList<Float> data){
         ArrayList<Float> filtered = new ArrayList<>(data.size());
         for(int i=0; i < filtered.size(); i++){
@@ -129,6 +168,11 @@ public class DataUtils {
         return data;
     }
 
+    /**
+     *  @param index the index of the data point to apply the filter to
+     *  @param data data array to be filtered
+     *  @param processedData data array to be inserted into
+     */
     static void applySGFilterRealtime(int index, ArrayList<Float> data, ArrayList<Float> processedData){
         for(int i=0; i<SG_FILTER.length; i++){
             float sum = 0;

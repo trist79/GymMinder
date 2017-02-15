@@ -15,19 +15,20 @@ import static org.junit.Assert.*;
 public class IntegrationEstimationTest {
 
     public static final long PERIOD = 10L;
-
+    ArrayList<ArrayList<Float>> data = new ArrayList<>();
+    ArrayList<ArrayList<Float>> processed = new ArrayList<>();
 
     @Before
     public void initDataUtils() {
-        ArrayList<ArrayList<Float>> data = new ArrayList<>();
         for(int i=0; i<3;i++){
             data.add(new ArrayList<Float>());
+            processed.add(new ArrayList<Float>());
         }
         ArrayList<Long> timestamps = new ArrayList<>();
         for(int i=0;i<10;i++){
             timestamps.add( PERIOD * i * 1000000000);
         }
-        DataUtils.init(data, timestamps);
+        DataUtils.init(data, timestamps, processed);
     }
 
     @Test
@@ -75,12 +76,22 @@ public class IntegrationEstimationTest {
     }
 
     @Test
-    public void applySavitzkyGolayFilterDoesNotOutOfBounds(){
+    public void applySavitzkyGolayFilterDoesNotCrash(){
         ArrayList<Float> data = new ArrayList<Float>();
         for(int i=0;i<10;i++){
             data.add(1f);
         }
         DataUtils.applySavitzkyGolayFilter(data);
+    }
+
+    @Test
+    public void realTimeSavitzkyGolayFilterDoesNotCrash(){
+        for(int i=0; i<10; i++){
+            data.get(0).add((float) Math.random());
+        }
+        for(int i=0; i<10;i++){
+            DataUtils.applySGFilterRealtime(i, data.get(0), processed.get(0));
+        }
     }
 
 
