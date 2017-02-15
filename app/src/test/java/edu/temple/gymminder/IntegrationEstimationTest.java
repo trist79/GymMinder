@@ -75,7 +75,7 @@ public class IntegrationEstimationTest {
     }
 
     @Test
-    public void applyFilterDoesNotOutOfBounds(){
+    public void applySavitzkyGolayFilterDoesNotOutOfBounds(){
         ArrayList<Float> data = new ArrayList<Float>();
         for(int i=0;i<10;i++){
             data.add(1f);

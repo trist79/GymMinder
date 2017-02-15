@@ -13,7 +13,7 @@ import java.util.List;
 public class DataUtils {
 
     public static final float CONVERSION = 1.0f / 1000000000.0f;
-    public static final int[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
+    public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
@@ -113,7 +113,7 @@ public class DataUtils {
                 if(i + j - 3 > 0 && i + j - 3 < data.size()){
                     sum+= SG_FILTER[j] * data.get(i+j-3);
                 }
-                filtered.add(i, sum);
+                filtered.add(i, sum/sum(SG_FILTER));
             }
         }
         return data;
