@@ -148,7 +148,6 @@ public class DataUtils {
         }
     }
 
-
     /**
      *
      * @param data array of data points to be smoothed
@@ -159,7 +158,7 @@ public class DataUtils {
         for(int i=0; i < filtered.size(); i++){
             for(int j=0; j < SG_FILTER.length; i++){
                 float sum = 0;
-                if(i + j - SG_FILTER.length/2 > 0 && i + j - SG_FILTER.length/2 < data.size()){
+                if(i + j - SG_FILTER.length/2 >= 0 && i + j - SG_FILTER.length/2 < data.size()){
                     sum+= SG_FILTER[j] * data.get(i+j-SG_FILTER.length/2);
                 }
                 filtered.add(i, sum/sum(SG_FILTER));
@@ -176,7 +175,7 @@ public class DataUtils {
     static void applySGFilterRealtime(int index, ArrayList<Float> data, ArrayList<Float> processedData){
         for(int i=0; i<SG_FILTER.length; i++){
             float sum = 0;
-            if(i + index - SG_FILTER.length/2 > 0 && i + index - SG_FILTER.length/2 < data.size()){
+            if(i + index - SG_FILTER.length/2 >= 0 && i + index - SG_FILTER.length/2 < data.size()){
                 sum += SG_FILTER[i] * data.get(i + index - SG_FILTER.length/2);
             }
             processedData.add(index, sum/sum(SG_FILTER));
