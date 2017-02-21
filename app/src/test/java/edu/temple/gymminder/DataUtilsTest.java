@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class IntegrationEstimationTest {
+public class DataUtilsTest {
 
     public static final long PERIOD = 10L;
     ArrayList<ArrayList<Float>> data = new ArrayList<>();
