@@ -14,6 +14,7 @@ public class DataUtils {
 
     public static final float CONVERSION = 1.0f / 1000000000.0f;
     public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
+    public static final float FILTER_SUM = sum(SG_FILTER);
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
@@ -155,16 +156,16 @@ public class DataUtils {
      */
     static ArrayList<Float> applySavitzkyGolayFilter(ArrayList<Float> data){
         ArrayList<Float> filtered = new ArrayList<>(data.size());
-        for(int i=0; i < filtered.size(); i++){
-            for(int j=0; j < SG_FILTER.length; i++){
-                float sum = 0;
+        for(int i=0; i < data.size(); i++){
+            float sum = 0;
+            for(int j=0; j < SG_FILTER.length; j++){
                 if(i + j - SG_FILTER.length/2 >= 0 && i + j - SG_FILTER.length/2 < data.size()){
                     sum+= SG_FILTER[j] * data.get(i+j-SG_FILTER.length/2);
                 }
-                filtered.add(i, sum/sum(SG_FILTER));
             }
+            filtered.add(i, sum/FILTER_SUM);
         }
-        return data;
+        return filtered;
     }
 
     /**
@@ -173,13 +174,14 @@ public class DataUtils {
      *  @param processedData data array to be inserted into
      */
     static void applySGFilterRealtime(int index, ArrayList<Float> data, ArrayList<Float> processedData){
+        float sum = 0;
         for(int i=0; i<SG_FILTER.length; i++){
-            float sum = 0;
             if(i + index - SG_FILTER.length/2 >= 0 && i + index - SG_FILTER.length/2 < data.size()){
                 sum += SG_FILTER[i] * data.get(i + index - SG_FILTER.length/2);
             }
-            processedData.add(index, sum/sum(SG_FILTER));
         }
+        processedData.add(index, sum/FILTER_SUM);
     }
+
 
 }

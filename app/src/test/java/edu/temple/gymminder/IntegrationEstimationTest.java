@@ -20,33 +20,33 @@ public class IntegrationEstimationTest {
 
     @Before
     public void initDataUtils() {
-        for(int i=0; i<3;i++){
+        for (int i = 0; i < 3; i++) {
             data.add(new ArrayList<Float>());
             processed.add(new ArrayList<Float>());
         }
         ArrayList<Long> timestamps = new ArrayList<>();
-        for(int i=0;i<10;i++){
-            timestamps.add( PERIOD * i * 1000000000);
+        for (int i = 0; i < 10; i++) {
+            timestamps.add(PERIOD * i * 1000000000);
         }
         DataUtils.init(data, timestamps, processed);
     }
 
     @Test
-    public void testDataUtilsConstantRiemann(){
+    public void testDataUtilsConstantRiemann() {
         ArrayList<Float> data = new ArrayList<>();
-        for(int i=0;i<10;i++){
+        for (int i = 0; i < 10; i++) {
             data.add(1f);
         }
         float f[] = DataUtils.riemann(data);
-        for(int i=0;i<9;i++){
+        for (int i = 0; i < 9; i++) {
             assertEquals(PERIOD, f[i], .1);
         }
     }
 
     @Test
-    public void testDataUtilsConstantIntegration(){
+    public void testDataUtilsConstantIntegration() {
         ArrayList<Float> data = new ArrayList<>();
-        for(int i=0;i<10;i++){
+        for (int i = 0; i < 10; i++) {
             data.add(1f);
         }
         float f = DataUtils.sum(DataUtils.riemann(data));
@@ -54,21 +54,21 @@ public class IntegrationEstimationTest {
     }
 
     @Test
-    public void testDataUtilsLinearRiemann(){
+    public void testDataUtilsLinearRiemann() {
         ArrayList<Float> data = new ArrayList<>();
-        for(int i=0;i<10;i++){
+        for (int i = 0; i < 10; i++) {
             data.add(1f * i);
         }
         float f[] = DataUtils.riemann(data);
-        for(int i=0;i<9;i++){
+        for (int i = 0; i < 9; i++) {
             assertEquals(i * PERIOD, f[i], .1);
         }
     }
 
     @Test
-    public void testDataUtilsLinearIntegration(){
+    public void testDataUtilsLinearIntegration() {
         ArrayList<Float> data = new ArrayList<>();
-        for(int i=0;i<10;i++){
+        for (int i = 0; i < 10; i++) {
             data.add(1f * i);
         }
         float f = DataUtils.sum(DataUtils.riemann(data));
@@ -76,23 +76,50 @@ public class IntegrationEstimationTest {
     }
 
     @Test
-    public void applySavitzkyGolayFilterDoesNotCrash(){
-        ArrayList<Float> data = new ArrayList<Float>();
-        for(int i=0;i<10;i++){
+    public void applySavitzkyGolayFilterDoesNotCrash() {
+        ArrayList<Float> data = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
             data.add(1f);
         }
         DataUtils.applySavitzkyGolayFilter(data);
     }
 
     @Test
-    public void realTimeSavitzkyGolayFilterDoesNotCrash(){
-        for(int i=0; i<10; i++){
+    public void realTimeSavitzkyGolayFilterDoesNotCrash() {
+        for (int i = 0; i < 10; i++) {
             data.get(0).add((float) Math.random());
         }
-        for(int i=0; i<10;i++){
+        for (int i = 0; i < 10; i++) {
             DataUtils.applySGFilterRealtime(i, data.get(0), processed.get(0));
         }
     }
 
+    @Test
+    public void testSavitzkyGolayFilter() {
+        ArrayList<Float> data = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            data.add((float) i);
+        }
+        data = DataUtils.applySavitzkyGolayFilter(data);
+        float[] expected = {.28f, .95f, 1.9f, 3f, 4f, 5f, 6f, 7.95f, 7.61f, 5.71f};
+        for (int i = 0; i < 10; i++) {
+            assertEquals(expected[i], data.get(i), .01);
+        }
+    }
+
+    @Test
+    public void testSavitzkyGolayFilterRealtime() {
+        ArrayList<Float> data = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            data.add((float) i);
+        }
+        for (int i = 0; i < 10; i++) {
+            DataUtils.applySGFilterRealtime(i, data, processed.get(0));
+        }
+        float[] expected = {.28f, .95f, 1.9f, 3f, 4f, 5f, 6f, 7.95f, 7.61f, 5.71f};
+        for (int i = 0; i < 10; i++) {
+            assertEquals(expected[i], processed.get(0).get(i), .01);
+        }
+    }
 
 }
