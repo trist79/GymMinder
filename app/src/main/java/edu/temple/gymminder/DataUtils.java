@@ -36,9 +36,9 @@ public class DataUtils {
     }
 
     /**
-     * @param x x acceleration to be added into array
-     * @param y y acceleration to be added into array
-     * @param z z acceleration to be added into array
+     * @param x     x acceleration to be added into array
+     * @param y     y acceleration to be added into array
+     * @param z     z acceleration to be added into array
      * @param alpha low pass filter parameter
      */
     static void addWithLowPassFilter(float x, float y, float z, float alpha) {
@@ -63,11 +63,12 @@ public class DataUtils {
     /**
      * This is an intermediate step in approximating the definite integral of data points, for
      * use with sum
+     *
      * @param list list of float values for which to calculate riemann rectangles
      * @return array of riemann rectangles
      */
     static float[] riemann(List<Float> list) {
-        float[] velocity = new float[list.size()-1];
+        float[] velocity = new float[list.size() - 1];
         Iterator<Float> iterator = list.listIterator();
         int i = 0;
         while (iterator.hasNext() && timestamps.size() > i + 1) {
@@ -81,9 +82,9 @@ public class DataUtils {
      * @param floats list of floats to be summed
      * @return the sum of values in floats
      */
-    static float sum(float[] floats){
+    static float sum(float[] floats) {
         float sum = 0f;
-        for(float f : floats) sum+=f;
+        for (float f : floats) sum += f;
         return sum;
     }
 
@@ -106,11 +107,12 @@ public class DataUtils {
 
     /**
      * Adds data point into the uniformly-spaced and smoothed data array
-     *
+     * <p>
      * avgNode is used by this method when the real polling frequency of the device
      * is higher than the desired polling frequency, and represents all data points not yet
-     * placed into the data array because the time difference is still too small
-     *
+     * placed into the data array because the time difference is still too small where
+     * avgNode[0] = value, and avgNode[1] = duration
+     * <p>
      * If the polling frequency of the device is lower than the desired polling frequency it
      * interpolates a data point at the desired frequency using the newest data point and the
      * data point most recently added into the data array
@@ -120,28 +122,16 @@ public class DataUtils {
     static void process(SensorEvent event) {
         for (int i = 0; i < 3; i++) {
             float x = Math.abs(event.values[i] > 0.09 ? event.values[i] : 0);
-            float duration = event.timestamp - timestamps.get(timestamps.size()-1) * CONVERSION;
-                //TODO: Separate averaging and interpolation into their own methods
-                if (duration < .1) {
+            float duration = event.timestamp - timestamps.get(timestamps.size() - 1) * CONVERSION;
+            if (duration < .1) {
                 //average the points with sum node
-                if (avgNode == null) {
-                    avgNode = new float[]{x, duration};
-                } else {
-                    avgNode[0] = avgNode[0] * (avgNode[1] / (avgNode[1] + duration))
-                            + x * (duration / (avgNode[1] + duration));
-                    avgNode[1] = avgNode[1] + duration;
-                    duration = avgNode[1];
-                }
-                //After averaging is done it's possible we now need to interpolate
+                avgNode = average(avgNode, x, duration);
+                duration = avgNode[1];
+                x = avgNode[0];
             }
-            if (duration > .1) {
-                //interpolate
-                float old = data.get(i).get(data.get(i).size() - 1);
-                x = old + (.1f) * (x - old) / (duration);
-                data.get(i).add(x);
-                applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
-                avgNode = null;
-            } else if (duration == .1) {
+            if (duration >= .1) {
+                //interpolate if needed
+                if (duration > .1) x = interpolate(x, duration, i);
                 data.get(i).add(x);
                 applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
                 avgNode = null;
@@ -151,37 +141,66 @@ public class DataUtils {
 
     /**
      *
+     * @param x data value to be interpolated
+     * @param duration duration >.1 since last added node
+     * @param i index of data array being used for interpolation
+     * @return
+     */
+    static float interpolate(float x, float duration, int i){
+        float old = data.get(i).get(data.get(i).size() - 1);
+        return old + (.1f) * (x - old) / (duration);
+    }
+
+    /**
+     *
+     * @param avgNode node to be modified
+     * @param newValue new value to be added to average
+     * @param newDuration new duration to be added to average
+     * @return the modified avgNode
+     */
+    static float[] average(float[] avgNode, float newValue, float newDuration) {
+        if (avgNode == null) {
+            avgNode = new float[]{newValue, newDuration};
+        } else {
+            avgNode[0] = avgNode[0] * (avgNode[1] / (avgNode[1] + newDuration))
+                    + newValue * (newDuration / (avgNode[1] + newDuration));
+            avgNode[1] = avgNode[1] + newDuration;
+        }
+        return avgNode;
+    }
+
+
+    /**
      * @param data array of data points to be smoothed
      * @return smoothed data points
      */
-    static ArrayList<Float> applySavitzkyGolayFilter(ArrayList<Float> data){
+    static ArrayList<Float> applySavitzkyGolayFilter(ArrayList<Float> data) {
         ArrayList<Float> filtered = new ArrayList<>(data.size());
-        for(int i=0; i < data.size(); i++){
+        for (int i = 0; i < data.size(); i++) {
             float sum = 0;
-            for(int j=0; j < SG_FILTER.length; j++){
-                if(i + j - SG_FILTER.length/2 >= 0 && i + j - SG_FILTER.length/2 < data.size()){
-                    sum+= SG_FILTER[j] * data.get(i+j-SG_FILTER.length/2);
+            for (int j = 0; j < SG_FILTER.length; j++) {
+                if (i + j - SG_FILTER.length / 2 >= 0 && i + j - SG_FILTER.length / 2 < data.size()) {
+                    sum += SG_FILTER[j] * data.get(i + j - SG_FILTER.length / 2);
                 }
             }
-            filtered.add(i, sum/FILTER_SUM);
+            filtered.add(i, sum / FILTER_SUM);
         }
         return filtered;
     }
 
     /**
-     *  @param index the index of the data point to apply the filter to
-     *  @param data data array to be filtered
-     *  @param processedData data array to be inserted into
+     * @param index         the index of the data point to apply the filter to
+     * @param data          data array to be filtered
+     * @param processedData data array to be inserted into
      */
-    static void applySGFilterRealtime(int index, ArrayList<Float> data, ArrayList<Float> processedData){
+    static void applySGFilterRealtime(int index, ArrayList<Float> data, ArrayList<Float> processedData) {
         float sum = 0;
-        for(int i=0; i<SG_FILTER.length; i++){
-            if(i + index - SG_FILTER.length/2 >= 0 && i + index - SG_FILTER.length/2 < data.size()){
-                sum += SG_FILTER[i] * data.get(i + index - SG_FILTER.length/2);
+        for (int i = 0; i < SG_FILTER.length; i++) {
+            if (i + index - SG_FILTER.length / 2 >= 0 && i + index - SG_FILTER.length / 2 < data.size()) {
+                sum += SG_FILTER[i] * data.get(i + index - SG_FILTER.length / 2);
             }
         }
-        processedData.add(index, sum/FILTER_SUM);
+        processedData.add(index, sum / FILTER_SUM);
     }
-
 
 }

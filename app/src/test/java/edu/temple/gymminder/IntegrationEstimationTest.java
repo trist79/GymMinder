@@ -122,4 +122,32 @@ public class IntegrationEstimationTest {
         }
     }
 
+    @Test
+    public void testInterpolation(){
+        ArrayList<ArrayList<Float>> data = new ArrayList<>();
+        data.add(new ArrayList<Float>());
+        data.get(0).add(10f);
+        //reinitialize DataUtils to use our new data sets
+        DataUtils.init(data, null, null);
+        float x = DataUtils.interpolate(20, .2f, 0);
+        assertEquals(15, x, .01);
+        x = DataUtils.interpolate(30, .2f, 0);
+        assertEquals(20, x, .01);
+        x = DataUtils.interpolate(30, .3f, 0);
+        assertEquals(16.66, x, .01);
+    }
+
+    @Test
+    public void testAverage(){
+        float[] avgNode = {10f, 10f};
+        float[] newNode = {20f, 10f};
+        float[] result = DataUtils.average(avgNode, newNode[0], newNode[1]);
+        assertEquals(15, result[0], .1);
+        assertEquals(20, result[1], .1);
+        newNode = new float[]{20f, 20f};
+        avgNode = new float[]{10f, 10f};
+        result = DataUtils.average(avgNode, newNode[0], newNode[1]);
+        assertEquals(16.66f, result[0], .1);
+    }
+
 }
