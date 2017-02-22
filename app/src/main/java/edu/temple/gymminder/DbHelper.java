@@ -32,7 +32,7 @@ public class DbHelper {
     }
 
     public void getTestUser() {
-        database.child("users").child("1").addListenerForSingleValueEvent(new ValueEventListener() {
+        parsePath(WorkoutContract.TEST_GET_USER).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d("Hey", dataSnapshot.getValue().toString());
@@ -52,7 +52,7 @@ public class DbHelper {
      * @param user        owner of workout
      */
     public void addNewWorkout(Workout workout, String workoutName, FirebaseUser user) {
-        database.child("users").child(user.getUid()).child(workoutName).setValue(workout);
+        parsePath(WorkoutContract.WORKOUTS).child(user.getUid()).child(workoutName).setValue(workout);
     }
 
     /**
@@ -60,7 +60,7 @@ public class DbHelper {
      * @param user        owner of workout
      */
     public void retrieveWorkout(String workoutName, FirebaseUser user) {
-        database.child("users").child(user.getUid()).child(workoutName).addListenerForSingleValueEvent(
+        parsePath(WorkoutContract.WORKOUTS).child(user.getUid()).child(workoutName).addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -82,7 +82,7 @@ public class DbHelper {
      */
     public void retreieveWorkoutDate(String workoutName, FirebaseUser user, Date date) {
         String day = formatDateForWorkout(date);
-        database.child("users").child(user.getUid())
+        parsePath(WorkoutContract.DATED_WORKOUTS).child(user.getUid())
                 .child(day)
                 .child(workoutName)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -111,7 +111,7 @@ public class DbHelper {
             if (workout.exercises.get(i).completed == null) return;
         }
         String day = formatDateForWorkout(date);
-        database.child("users").child(user.getUid())
+        parsePath(WorkoutContract.DATED_WORKOUTS).child(user.getUid())
                 .child(day)
                 .child(workoutName)
                 .setValue(workout);
@@ -121,11 +121,12 @@ public class DbHelper {
      * @param user user for which to retrieve all owned workouts
      */
     public void retrieveAllWorkouts(FirebaseUser user) {
-        database.child("users").child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        parsePath(WorkoutContract.WORKOUTS).child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    //TODO THIS DOES NOT WORK BECAUSE IT GETS ALL CHILDREN BUT ONE OF THOSE CHILDREN ( THE COMPLETED WORKOUT ) IS OF A DIFFERENT FORMAT
                     workouts.add(ds.getValue(Workout.class));
                     Log.d("Database", "Workouts retrieved" + workouts.get(0));
                     listener.respondToWorkouts(workouts);
@@ -140,7 +141,7 @@ public class DbHelper {
     }
 
     public void testRetrieve() {
-        database.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+        parsePath(WorkoutContract.TEST_RETRIEVE).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 listener.updateUi(dataSnapshot.getValue(Workout.class));
@@ -161,6 +162,24 @@ public class DbHelper {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         return cal.get(Calendar.DAY_OF_YEAR) + " " + cal.get(Calendar.YEAR);
+    }
+
+    //TODO: make more versions that handle all potential paths (Date, FirebaseUser, etc. objects)
+    private DatabaseReference parsePath(String[] path){
+        DatabaseReference reference = database.getRoot();
+        System.out.println(reference.toString());
+        for(String s : path){
+            reference = reference.child(s);
+        }
+        return reference;
+    }
+
+
+    public static final class WorkoutContract {
+        public static final String[] DATED_WORKOUTS = {"users", "dated"};
+        public static final String[] WORKOUTS = {"users", "stored"};
+        public static final String[] TEST_RETRIEVE = {"users"};
+        public static final String[] TEST_GET_USER = {"users", "1"};
     }
 
 }

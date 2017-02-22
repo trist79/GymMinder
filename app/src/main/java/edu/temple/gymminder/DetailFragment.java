@@ -6,15 +6,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 
 
 /**
@@ -26,6 +32,8 @@ public class DetailFragment extends Fragment {
     public static final String EXTRA_WORKOUT = "I heard cathedral bells";
     public static final String EXTRA_NUMREPS = "Juniper and lamplight";
     public static final int RESULT_REPS = 7073;
+
+    ListView lv;
 
     public DetailFragment() {
         // Required empty public constructor
@@ -50,7 +58,7 @@ public class DetailFragment extends Fragment {
         ((TextView) v.findViewById(R.id.textView)).setText(workout.toString());
 
         final ArrayList<Exercise> exercises = workout.exercises;
-        ListView lv = (ListView) v.findViewById(R.id.workoutsList);
+        lv = (ListView) v.findViewById(R.id.workoutsList);
         lv.setAdapter(new BaseAdapter() {
             @Override
             public int getCount() {
@@ -102,10 +110,35 @@ public class DetailFragment extends Fragment {
             if(resultCode == Activity.RESULT_OK){
                 int repsDone = data.getIntExtra(DataActivity.EXTRA_REPS_DONE, -1);
                 Log.d("OuO", String.valueOf(repsDone));
+                for(int i=0;i<lv.getAdapter().getCount();i++){
+                    Exercise ex = (Exercise) lv.getAdapter().getItem(i);
+                    if(ex.setsDone != ex.sets) return;
+                }
+                onWorkoutFinished();
             }
         } else {
             Log.d("OnO", "Something went wrong");
         }
+    }
+
+    public void onWorkoutFinished(){
+        //Add button to let user save workout to database, or maybe just do it automatically
+        Button button = new Button(getContext());
+        button.setText(R.string.save_workout_text);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DbHelper dbHelper = new DbHelper(null);
+                ArrayList<Exercise> exercises = new ArrayList<>();
+                for(int i=0; i<lv.getAdapter().getCount();i++){
+                    exercises.add((Exercise) lv.getAdapter().getItem(i));
+                }
+                dbHelper.addWorkout(new Workout(exercises), "Starboy",
+                        FirebaseAuth.getInstance().getCurrentUser(),
+                        Calendar.getInstance().getTime());
+            }
+        });
+        ((LinearLayout) getView()).addView(button);
     }
 
 }
