@@ -15,6 +15,7 @@ import static org.junit.Assert.*;
 public class DataUtilsTest {
 
     public static final long PERIOD = 10L;
+    public static final int S2MS_CONVERSION = 1000000000;
     ArrayList<ArrayList<Float>> data = new ArrayList<>();
     ArrayList<ArrayList<Float>> processed = new ArrayList<>();
 
@@ -26,7 +27,7 @@ public class DataUtilsTest {
         }
         ArrayList<Long> timestamps = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            timestamps.add(PERIOD * i * 1000000000);
+            timestamps.add(PERIOD * i * S2MS_CONVERSION);
         }
         DataUtils.init(data, timestamps, processed);
     }

@@ -22,7 +22,7 @@ public class DbHelper {
     /**
      * Utility class for interacting with firebase database. Any processing of retrieved objects
      * is handled by listener, which should be the calling component that wishes to operate on
-     * the data. All data returned is a Workout or a list of Workouts.
+     * the data. All data returned is a Workout or a List of Workouts.
      */
     private DatabaseReference database = FirebaseDatabase.getInstance().getReference();
     private DatabaseListener listener;
@@ -52,7 +52,7 @@ public class DbHelper {
      * @param user        owner of workout
      */
     public void addNewWorkout(Workout workout, String workoutName, FirebaseUser user) {
-        parsePath(WorkoutContract.WORKOUTS).child(user.getUid()).child(workoutName).setValue(workout);
+        parsePath(WorkoutContract.WORKOUTS, user.getUid(), workoutName).setValue(workout);
     }
 
     /**
@@ -60,7 +60,7 @@ public class DbHelper {
      * @param user        owner of workout
      */
     public void retrieveWorkout(String workoutName, FirebaseUser user) {
-        parsePath(WorkoutContract.WORKOUTS).child(user.getUid()).child(workoutName).addListenerForSingleValueEvent(
+        parsePath(WorkoutContract.WORKOUTS, user.getUid(), workoutName).addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -82,9 +82,7 @@ public class DbHelper {
      */
     public void retreieveWorkoutDate(String workoutName, FirebaseUser user, Date date) {
         String day = formatDateForWorkout(date);
-        parsePath(WorkoutContract.DATED_WORKOUTS).child(user.getUid())
-                .child(day)
-                .child(workoutName)
+        parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -111,9 +109,7 @@ public class DbHelper {
             if (workout.exercises.get(i).completed == null) return;
         }
         String day = formatDateForWorkout(date);
-        parsePath(WorkoutContract.DATED_WORKOUTS).child(user.getUid())
-                .child(day)
-                .child(workoutName)
+        parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName)
                 .setValue(workout);
     }
 
@@ -121,7 +117,7 @@ public class DbHelper {
      * @param user user for which to retrieve all owned workouts
      */
     public void retrieveAllWorkouts(FirebaseUser user) {
-        parsePath(WorkoutContract.WORKOUTS).child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        parsePath(WorkoutContract.WORKOUTS, user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
@@ -164,11 +160,13 @@ public class DbHelper {
         return cal.get(Calendar.DAY_OF_YEAR) + " " + cal.get(Calendar.YEAR);
     }
 
-    //TODO: make more versions that handle all potential paths (Date, FirebaseUser, etc. objects)
-    private DatabaseReference parsePath(String[] path){
+    private DatabaseReference parsePath(String[] path, String... strings){
         DatabaseReference reference = database.getRoot();
         System.out.println(reference.toString());
         for(String s : path){
+            reference = reference.child(s);
+        }
+        for(String s : strings){
             reference = reference.child(s);
         }
         return reference;

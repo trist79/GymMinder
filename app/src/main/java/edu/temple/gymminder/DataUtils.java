@@ -25,6 +25,7 @@ public class DataUtils {
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
         data = dataList;
         timestamps = time;
+        processedData = null;
         avgNode = null;
     }
 
