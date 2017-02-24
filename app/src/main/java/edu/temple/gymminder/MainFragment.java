@@ -43,6 +43,12 @@ public class MainFragment extends Fragment implements DatabaseListener {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_main, container, false);
         db.retrieveAllWorkouts(auth.getCurrentUser());
+        v.findViewById(R.id.add_workout_fab).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.goToWorkoutCreator();
+            }
+        });
         ((TextView) v.findViewById(R.id.greeting)).setText(auth.getCurrentUser().getEmail());
         return v;
     }
@@ -100,6 +106,8 @@ public class MainFragment extends Fragment implements DatabaseListener {
 
     public interface DetailListener {
         void goToDetail(Workout workout);
+
+        void goToWorkoutCreator();
     }
 
 }

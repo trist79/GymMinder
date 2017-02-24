@@ -109,8 +109,7 @@ public class DbHelper {
             if (workout.exercises.get(i).completed == null) return;
         }
         String day = formatDateForWorkout(date);
-        parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName)
-                .setValue(workout);
+        parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName).setValue(workout);
     }
 
     /**
@@ -122,7 +121,6 @@ public class DbHelper {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    //TODO THIS DOES NOT WORK BECAUSE IT GETS ALL CHILDREN BUT ONE OF THOSE CHILDREN ( THE COMPLETED WORKOUT ) IS OF A DIFFERENT FORMAT
                     workouts.add(ds.getValue(Workout.class));
                     Log.d("Database", "Workouts retrieved" + workouts.get(0));
                     listener.respondToWorkouts(workouts);

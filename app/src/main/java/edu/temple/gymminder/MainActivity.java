@@ -70,4 +70,13 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 .addToBackStack(null)
                 .commit();
     }
+
+    @Override
+    public void goToWorkoutCreator() {
+        WorkoutCreatorFragment workoutCreatorFragment = new WorkoutCreatorFragment();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainFrame, workoutCreatorFragment)
+                .addToBackStack(null)
+                .commit();
+    }
 }
