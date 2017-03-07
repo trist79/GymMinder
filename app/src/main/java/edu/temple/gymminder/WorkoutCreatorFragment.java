@@ -1,6 +1,7 @@
 package edu.temple.gymminder;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -12,7 +13,10 @@ import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -21,6 +25,9 @@ import java.util.ArrayList;
 public class WorkoutCreatorFragment extends Fragment {
     BaseAdapter listAdapter;
     ArrayList<Exercise> exercises = new ArrayList<>();
+    Listener listener;
+    //TODO probably refactor this to something that makes more sense o3o
+    WorkoutCreatorFragment self = this;
 
     public WorkoutCreatorFragment() {
         // Required empty public constructor
@@ -67,7 +74,25 @@ public class WorkoutCreatorFragment extends Fragment {
                 listAdapter.notifyDataSetChanged();
             }
         });
+        v.findViewById(R.id.finishExerciseButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DbHelper dbHelper = new DbHelper(null);
+                dbHelper.addNewWorkout(new Workout(exercises), "8^)", FirebaseAuth.getInstance().getCurrentUser());
+                listener.finishFragment(self);
+            }
+        });
         return v;
+    }
+
+    @Override
+    public void onAttach(Context c){
+        super.onAttach(c);
+        listener = (Listener) c;
+    }
+
+    public interface Listener{
+        void finishFragment(Fragment f);
     }
 
 }
