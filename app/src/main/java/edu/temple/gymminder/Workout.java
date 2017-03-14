@@ -19,6 +19,9 @@ public class Workout implements Serializable {
     }
 
     public Workout(ArrayList<Exercise> exercises){
+        for(Exercise e : exercises){
+            if(e.workout.length() > 50 || e.reps <=0 || e.sets <=0) exercises.remove(e);
+        }
         this.exercises = exercises;
     }
 

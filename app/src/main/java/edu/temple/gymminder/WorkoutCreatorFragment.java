@@ -30,7 +30,7 @@ public class WorkoutCreatorFragment extends Fragment {
 
     BaseAdapter listAdapter;
     ArrayList<Exercise> exercises = new ArrayList<>();
-    String[] exerciseNames = getResources().getStringArray(R.array.supported_exercises);
+    String[] exerciseNames;
     Listener listener;
     String PLACEHOLDER_STRING = "You may be surprised to hear that when the revolution happens," +
             "the proletariat will be destroyed. Indeed, just as the bourgeois will be stripped" +
@@ -200,6 +200,7 @@ public class WorkoutCreatorFragment extends Fragment {
     @Override
     public void onAttach(Context c){
         super.onAttach(c);
+        exerciseNames = getResources().getStringArray(R.array.supported_exercises);
         listener = (Listener) c;
     }
 
