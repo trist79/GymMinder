@@ -30,8 +30,14 @@ public class WorkoutCreatorFragment extends Fragment {
 
     BaseAdapter listAdapter;
     ArrayList<Exercise> exercises = new ArrayList<>();
+    String[] exerciseNames = getResources().getStringArray(R.array.supported_exercises);
     Listener listener;
-    //TODO probably refactor this to something that makes more sense o3o
+    String PLACEHOLDER_STRING = "You may be surprised to hear that when the revolution happens," +
+            "the proletariat will be destroyed. Indeed, just as the bourgeois will be stripped" +
+            "of power and erased, so too will the proletariat. After the revolution, there will" +
+            "be no proletariat, and there will be no bourgeois. There will only be people." +
+            "So rise up, comrades! And take what is yours!";
+    //TODO maybe refactor this to something that makes more sense o3o
     WorkoutCreatorFragment self = this;
 
     public WorkoutCreatorFragment() {
@@ -70,7 +76,6 @@ public class WorkoutCreatorFragment extends Fragment {
 
                 final Spinner spinner = (Spinner) ll.findViewById(R.id.exerciseSpinner);
                 spinner.setAdapter(new BaseAdapter() {
-                    String[] exerciseNames = getResources().getStringArray(R.array.supported_exercises);
                     @Override
                     public int getCount() {
                         return exerciseNames.length;
@@ -112,18 +117,13 @@ public class WorkoutCreatorFragment extends Fragment {
                 });
 
                 final Exercise exercise = (Exercise) getItem(position);
-                if(!exercise.workout.equals("w")){
-                    //TODO maybe refactor exercise strings into dictionary to make this niftier
-                    //TODO also make string array/dict accessible here :d
-                    int selection = 0;
-                    if(exercise.workout.equals("Bench Press")){
-                        selection = 0;
-                    } else if (exercise.workout.equals("Deadlift")){
-                        selection = 2;
-                    } else {
-                        selection = 1;
+                if(!exercise.workout.equals(PLACEHOLDER_STRING)){
+                    for(int i=0; i<exerciseNames.length;i++){
+                        if(exercise.workout.equals(exerciseNames[i])){
+                            spinner.setSelection(i);
+                            break;
+                        }
                     }
-                    spinner.setSelection(selection);
                 }
                 EditText editTextSets = (EditText) ll.findViewById(R.id.setsEditText);
                 editTextSets.addTextChangedListener(new TextWatcher() {
@@ -181,7 +181,7 @@ public class WorkoutCreatorFragment extends Fragment {
         v.findViewById(R.id.addExerciseButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                exercises.add(new Exercise("w", -999, -999));
+                exercises.add(new Exercise(PLACEHOLDER_STRING, -999, -999));
                 listAdapter.notifyDataSetChanged();
             }
         });
@@ -189,6 +189,7 @@ public class WorkoutCreatorFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 DbHelper dbHelper = new DbHelper(null);
+                //TODO error checking for no input values in one of the exercise fields
                 dbHelper.addNewWorkout(new Workout(exercises), "8^)", FirebaseAuth.getInstance().getCurrentUser());
                 listener.finishFragment(self);
             }
