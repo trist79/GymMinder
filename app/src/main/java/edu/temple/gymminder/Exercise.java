@@ -45,6 +45,18 @@ public class Exercise implements Serializable {
         setsDone = 0;
     }
 
+    public void setSets(int sets){
+        this.sets = sets;
+    }
+
+    public void setReps(int reps){
+        this.reps = reps;
+    }
+
+    public void setWorkout(String workout){
+        this.workout = workout;
+    }
+
     @Override
     public String toString(){
         return workout + ": " + reps + "x" + sets;

@@ -17,4 +17,6 @@
         <item>Squat</item>
         <item>Deadlift</item>
     </array>
+    <string name="reps">reps</string>
+    <string name="sets">sets</string>
 </resources>

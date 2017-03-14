@@ -4,32 +4,31 @@ package edu.temple.gymminder;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.InputType;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class WorkoutCreatorFragment extends Fragment {
+
     BaseAdapter listAdapter;
-    //TODO make a "builder" that builds exercises from the entered values here.
     ArrayList<Exercise> exercises = new ArrayList<>();
     Listener listener;
     //TODO probably refactor this to something that makes more sense o3o
@@ -62,22 +61,24 @@ public class WorkoutCreatorFragment extends Fragment {
             }
 
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(final int position, View convertView, ViewGroup parent) {
                 //TODO view reuse
-                LinearLayout ll = new LinearLayout(getContext());
-                ll.setOrientation(LinearLayout.HORIZONTAL);
-//                EditText editTextExercise = new EditText(getContext());
-                Spinner spinner = new Spinner(getContext());
+                LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(
+                        Context.LAYOUT_INFLATER_SERVICE);
+                LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.item_exercise_creator,
+                        parent, false);
+
+                final Spinner spinner = (Spinner) ll.findViewById(R.id.exerciseSpinner);
                 spinner.setAdapter(new BaseAdapter() {
-                    String[] exercises = getResources().getStringArray(R.array.supported_exercises);
+                    String[] exerciseNames = getResources().getStringArray(R.array.supported_exercises);
                     @Override
                     public int getCount() {
-                        return exercises.length;
+                        return exerciseNames.length;
                     }
 
                     @Override
                     public Object getItem(int i) {
-                        return exercises[i];
+                        return exerciseNames[i];
                     }
 
                     @Override
@@ -96,15 +97,82 @@ public class WorkoutCreatorFragment extends Fragment {
                         return ll;
                     }
                 });
-                EditText editTextSets = new EditText(getContext());
-                EditText editTextReps = new EditText(getContext());
-                editTextReps.setInputType(InputType.TYPE_CLASS_NUMBER);
-                editTextSets.setInputType(InputType.TYPE_CLASS_NUMBER);
-                editTextSets.setHint("Sets");
-                editTextReps.setHint("Reps");
-                ll.addView(spinner);
-                ll.addView(editTextSets);
-                ll.addView(editTextReps);
+                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        Exercise ex = (Exercise) listAdapter.getItem(position); //refers to ListView
+                        String workout = (String) spinner.getAdapter().getItem(i); //refers to Spinner
+                        ex.setWorkout(workout);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+                final Exercise exercise = (Exercise) getItem(position);
+                if(!exercise.workout.equals("w")){
+                    //TODO maybe refactor exercise strings into dictionary to make this niftier
+                    //TODO also make string array/dict accessible here :d
+                    int selection = 0;
+                    if(exercise.workout.equals("Bench Press")){
+                        selection = 0;
+                    } else if (exercise.workout.equals("Deadlift")){
+                        selection = 2;
+                    } else {
+                        selection = 1;
+                    }
+                    spinner.setSelection(selection);
+                }
+                EditText editTextSets = (EditText) ll.findViewById(R.id.setsEditText);
+                editTextSets.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                        try {
+                            exercise.sets = Integer.parseInt(editable.toString());
+                        } catch (Exception e){
+                            //TODO error checking
+                        }
+                    }
+                });
+                EditText editTextReps = (EditText) ll.findViewById(R.id.repsEditText);
+                editTextReps.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                        try {
+                            exercise.reps = Integer.parseInt(editable.toString());
+                        } catch (Exception e){
+                            //TODO error checking
+                        }
+                    }
+                });
+                if(exercise.sets != -999){
+                    editTextSets.setText(String.valueOf(exercise.sets));
+                }
+                if(exercise.reps != -999){
+                    ((EditText) ll.findViewById(R.id.repsEditText)).setText(String.valueOf(exercise.reps));
+                }
                 return ll;
             }
         };
@@ -113,7 +181,7 @@ public class WorkoutCreatorFragment extends Fragment {
         v.findViewById(R.id.addExerciseButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                exercises.add(new Exercise("w", 2, 3));
+                exercises.add(new Exercise("w", -999, -999));
                 listAdapter.notifyDataSetChanged();
             }
         });
