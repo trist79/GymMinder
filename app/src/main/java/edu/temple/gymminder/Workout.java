@@ -1,5 +1,8 @@
 package edu.temple.gymminder;
 
+import android.widget.EditText;
+import android.widget.Spinner;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +31,7 @@ public class Workout implements Serializable {
         res = res.substring(0, res.length()-1);
         return res;
     }
+
 
 
 }

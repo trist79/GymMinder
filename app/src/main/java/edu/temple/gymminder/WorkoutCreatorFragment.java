@@ -4,6 +4,8 @@ package edu.temple.gymminder;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -24,6 +29,7 @@ import java.util.List;
  */
 public class WorkoutCreatorFragment extends Fragment {
     BaseAdapter listAdapter;
+    //TODO make a "builder" that builds exercises from the entered values here.
     ArrayList<Exercise> exercises = new ArrayList<>();
     Listener listener;
     //TODO probably refactor this to something that makes more sense o3o
@@ -60,8 +66,45 @@ public class WorkoutCreatorFragment extends Fragment {
                 //TODO view reuse
                 LinearLayout ll = new LinearLayout(getContext());
                 ll.setOrientation(LinearLayout.HORIZONTAL);
-                EditText editText = new EditText(getContext());
-                ll.addView(editText);
+//                EditText editTextExercise = new EditText(getContext());
+                Spinner spinner = new Spinner(getContext());
+                spinner.setAdapter(new BaseAdapter() {
+                    String[] exercises = getResources().getStringArray(R.array.supported_exercises);
+                    @Override
+                    public int getCount() {
+                        return exercises.length;
+                    }
+
+                    @Override
+                    public Object getItem(int i) {
+                        return exercises[i];
+                    }
+
+                    @Override
+                    public long getItemId(int i) {
+                        return i;
+                    }
+
+                    @Override
+                    public View getView(int i, View view, ViewGroup viewGroup) {
+                        LinearLayout ll = new LinearLayout(getContext());
+                        TextView textView = new TextView(getContext());
+                        textView.setText(getItem(i).toString());
+                        //TODO make this level with EditTexts
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+                        ll.addView(textView);
+                        return ll;
+                    }
+                });
+                EditText editTextSets = new EditText(getContext());
+                EditText editTextReps = new EditText(getContext());
+                editTextReps.setInputType(InputType.TYPE_CLASS_NUMBER);
+                editTextSets.setInputType(InputType.TYPE_CLASS_NUMBER);
+                editTextSets.setHint("Sets");
+                editTextReps.setHint("Reps");
+                ll.addView(spinner);
+                ll.addView(editTextSets);
+                ll.addView(editTextReps);
                 return ll;
             }
         };
