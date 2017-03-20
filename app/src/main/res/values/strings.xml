@@ -19,4 +19,5 @@
     </array>
     <string name="reps">reps</string>
     <string name="sets">sets</string>
+    <string name="workout_name">Workout Name</string>
 </resources>

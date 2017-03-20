@@ -190,7 +190,9 @@ public class WorkoutCreatorFragment extends Fragment {
             public void onClick(View v) {
                 DbHelper dbHelper = new DbHelper(null);
                 //TODO error checking for no input values in one of the exercise fields
-                dbHelper.addNewWorkout(new Workout(exercises, true), "8^)", FirebaseAuth.getInstance().getCurrentUser());
+                dbHelper.addNewWorkout(new Workout(exercises, true),
+                        ((EditText) getView().findViewById(R.id.workoutNameEditText)).getText().toString(),
+                        FirebaseAuth.getInstance().getCurrentUser());
                 listener.finishFragment(self);
             }
         });
