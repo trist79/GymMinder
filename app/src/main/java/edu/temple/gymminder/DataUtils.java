@@ -15,11 +15,13 @@ public class DataUtils {
     public static final float MS2S_CONVERSION = 1.0f / 1000000000.0f;
     public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
     public static final float FILTER_SUM = sum(SG_FILTER);
+    private static final float PERIOD = .1f;
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
+
 
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
@@ -124,15 +126,15 @@ public class DataUtils {
         for (int i = 0; i < 3; i++) {
             float x = Math.abs(event.values[i] > 0.09 ? event.values[i] : 0);
             float duration = event.timestamp - timestamps.get(timestamps.size() - 1) * MS2S_CONVERSION;
-            if (duration < .1) {
+            if (duration < PERIOD) {
                 //average the points with sum node
                 avgNode = average(avgNode, x, duration);
                 duration = avgNode[1];
                 x = avgNode[0];
             }
-            if (duration >= .1) {
+            if (duration >= PERIOD) {
                 //interpolate if needed
-                if (duration > .1) x = interpolate(x, duration, i);
+                if (duration > PERIOD) x = interpolate(x, duration, i);
                 data.get(i).add(x);
                 applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
                 avgNode = null;
@@ -143,13 +145,13 @@ public class DataUtils {
     /**
      *
      * @param x data value to be interpolated
-     * @param duration duration >.1 since last added node
+     * @param duration duration > PERIOD since last added node
      * @param i index of data array being used for interpolation
      * @return interpolated data value
      */
     static float interpolate(float x, float duration, int i){
         float old = data.get(i).get(data.get(i).size() - 1);
-        return old + (.1f) * (x - old) / (duration);
+        return old + (PERIOD) * (x - old) / (duration);
     }
 
     /**
