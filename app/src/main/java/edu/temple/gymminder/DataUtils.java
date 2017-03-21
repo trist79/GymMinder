@@ -12,16 +12,22 @@ import java.util.List;
 
 public class DataUtils {
 
+    //TODO: Implement selection of peak candidates: https://www.ncbi.nlm.nih.gov/pubmed/18269982
+    //TODO: Implement DTW-based repetition detection
+
+    //TODO: Refactor at least data processing part to insantiated class
+
     public static final float MS2S_CONVERSION = 1.0f / 1000000000.0f;
     public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
+    private static final float EXPANSION_VALUE = 1.5f;
+    private static final float PEAK_SIMILARITY_FACTOR = 3f;
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
-
 
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
@@ -204,6 +210,43 @@ public class DataUtils {
             }
         }
         processedData.add(index, sum / FILTER_SUM);
+    }
+
+    ArrayList<Peak> reducePeaks(ArrayList<Peak> peaks, Peak originalPeak){
+        for(Peak p : peaks){
+            if(p.amplitude < ( Math.pow(PEAK_SIMILARITY_FACTOR, -1) * originalPeak.amplitude )){
+                peaks.remove(p);
+            }
+        }
+        return peaks;
+    }
+
+    boolean accept(DetectedBounds bounds){
+        //TODO logistic regression to find coefficients
+        final float b0 = 1, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
+        float res = b0 + (b1 * bounds.dst) + (b2 * bounds.max) + (b3 * bounds.min) + (b4 * bounds.sd)
+                + (b5 * bounds.rms) + (b6 * bounds.dur);
+        return 1/(1+Math.exp(-1.0*res)) >= .5;
+    }
+
+    private class DetectedBounds {
+        float dst, max, min, sd, rms, dur;
+        int s, e;
+
+        public DetectedBounds(int s, int e, float dst, float max, float min, float sd, float rms){
+            this.s = s; this.e = e; this.dst = dst; this.max = max; this.min = min; this.sd = sd;
+            this.rms = rms; this.dur = e - s;
+        }
+    }
+
+    private class Peak {
+        float amplitude;
+        int index;
+
+        public Peak(int index, float amplitude){
+            this.index = index;
+            this.amplitude = amplitude;
+        }
     }
 
 }
