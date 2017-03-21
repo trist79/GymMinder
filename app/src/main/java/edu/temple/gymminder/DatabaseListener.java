@@ -7,5 +7,5 @@ import java.util.ArrayList;
  */
 public interface DatabaseListener {
     void updateUi(Workout workout);
-    void respondToWorkouts(ArrayList<Workout> workouts);
+    void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
 }

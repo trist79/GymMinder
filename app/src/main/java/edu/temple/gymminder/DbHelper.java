@@ -120,11 +120,15 @@ public class DbHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
+                //TODO maybe refactor workout definition to include name, so we don't have to do this
+                ArrayList<String> names = new ArrayList<String>();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     workouts.add(ds.getValue(Workout.class));
-                    Log.d("Database", "Workouts retrieved" + workouts.get(0));
-                    listener.respondToWorkouts(workouts);
+                    names.add(ds.getKey());
+                    Log.d("Database", "Workout name: " + ds.getKey());
+                    listener.respondToWorkouts(workouts, names);
                 }
+                Log.d("Database", "Workouts retrieved: " + workouts.size());
             }
 
             @Override

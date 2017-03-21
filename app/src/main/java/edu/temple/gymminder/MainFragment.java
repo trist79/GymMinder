@@ -2,18 +2,13 @@ package edu.temple.gymminder;
 
 
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -59,10 +54,10 @@ public class MainFragment extends Fragment implements DatabaseListener {
     }
 
     @Override
-    public void respondToWorkouts(final ArrayList<Workout> workouts) {
+    public void respondToWorkouts(final ArrayList<Workout> workouts, final ArrayList<String> names) {
         String res = "";
-        for(Workout workout : workouts){
-            res+=workout+"\n";
+        for(String name : names){
+            res+=name+"\n";
         }
         ((TextView) getView().findViewById(R.id.workouts)).setText(res);
         ListView lv = (ListView) getView().findViewById(R.id.workoutsList);
@@ -86,14 +81,15 @@ public class MainFragment extends Fragment implements DatabaseListener {
             public View getView(int position, View convertView, ViewGroup parent) {
                 //TODO implement view reuse
                 TextView tv = new TextView(getContext());
-                tv.setText(getItem(position).toString());
+                tv.setText(names.get(position));
                 return tv;
             }
         });
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                listener.goToDetail((Workout) parent.getAdapter().getItem(position));
+                listener.goToDetail((Workout) parent.getAdapter().getItem(position),
+                        names.get(position));
             }
         });
     }
@@ -105,7 +101,7 @@ public class MainFragment extends Fragment implements DatabaseListener {
     }
 
     public interface DetailListener {
-        void goToDetail(Workout workout);
+        void goToDetail(Workout workout, String name);
 
         void goToWorkoutCreator();
     }

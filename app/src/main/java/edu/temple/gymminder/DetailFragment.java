@@ -29,21 +29,25 @@ import java.util.Calendar;
 public class DetailFragment extends Fragment {
 
     private static final String WORKOUT_ARG = "SPARROW THAN A SNAIL";
+    private static final String NAME_ARG = "There are no registered users";
+    private static final String PLACEHOLDER_WORKOUT = "So for now let's just";
     public static final String EXTRA_WORKOUT = "I heard cathedral bells";
     public static final String EXTRA_NUMREPS = "Juniper and lamplight";
     public static final int RESULT_REPS = 7073;
 
     ListView lv;
+    String workoutName;
 
     public DetailFragment() {
         // Required empty public constructor
     }
 
-    public static DetailFragment newInstance(Workout workout){
+    public static DetailFragment newInstance(Workout workout, String name){
         DetailFragment detailFragment = new DetailFragment();
         Bundle args = new Bundle();
         args.putSerializable(WORKOUT_ARG, workout);
         detailFragment.setArguments(args);
+        args.putString(NAME_ARG, name);
         return detailFragment;
     }
 
@@ -54,8 +58,10 @@ public class DetailFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_detail, container, false);
         Workout workout = (Workout) getArguments().getSerializable(WORKOUT_ARG);
+        workoutName = getArguments().getString(NAME_ARG);
         if(workout == null) return v;
-        ((TextView) v.findViewById(R.id.textView)).setText(workout.toString());
+        ((TextView) v.findViewById(R.id.textView)).setText(
+                workoutName != null ? workoutName : workout.toString());
 
         final ArrayList<Exercise> exercises = workout.exercises;
         lv = (ListView) v.findViewById(R.id.workoutsList);
@@ -133,7 +139,8 @@ public class DetailFragment extends Fragment {
                 for(int i=0; i<lv.getAdapter().getCount();i++){
                     exercises.add((Exercise) lv.getAdapter().getItem(i));
                 }
-                dbHelper.addWorkout(new Workout(exercises), "Starboy",
+                dbHelper.addWorkout(new Workout(exercises),
+                        workoutName != null ? workoutName : PLACEHOLDER_WORKOUT,
                         FirebaseAuth.getInstance().getCurrentUser(),
                         Calendar.getInstance().getTime());
             }

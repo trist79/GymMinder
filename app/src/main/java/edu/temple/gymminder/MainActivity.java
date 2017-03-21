@@ -22,7 +22,6 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupAuth();
-//        auth.signOut(); //TODO remove when not testing signin/signup
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (auth.getCurrentUser() == null) {
             fragmentManager.beginTransaction()
@@ -64,8 +63,8 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
     }
 
     @Override
-    public void goToDetail(Workout workout) {
-        DetailFragment detailFragment = DetailFragment.newInstance(workout);
+    public void goToDetail(Workout workout, String name) {
+        DetailFragment detailFragment = DetailFragment.newInstance(workout, name);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mainFrame, detailFragment)
                 .addToBackStack(null)
