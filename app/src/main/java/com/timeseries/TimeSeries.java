@@ -32,8 +32,8 @@ public class TimeSeries
 
    // PRIVATE DATA
    private final ArrayList labels;   // labels for each column
-   private final ArrayList timeReadings;        // ArrayList of Double
-   private final ArrayList tsArray;    // ArrayList of TimeSeriesPoint.. no time
+   public ArrayList timeReadings;        // ArrayList of Double
+   public ArrayList tsArray;    // ArrayList of TimeSeriesPoint.. no time
 
                                                                                      // TODO don't use defaults delimiter/1stColTime... determine if not specified
 

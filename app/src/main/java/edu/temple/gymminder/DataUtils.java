@@ -2,6 +2,13 @@ package edu.temple.gymminder;
 
 import android.hardware.SensorEvent;
 
+import com.dtw.FastDTW;
+import com.dtw.TimeWarpInfo;
+import com.dtw.WarpPath;
+import com.timeseries.TimeSeries;
+import com.timeseries.TimeSeriesPoint;
+import com.util.DistanceFunction;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -13,7 +20,6 @@ import java.util.List;
 public class DataUtils {
 
     //TODO: Implement selection of peak candidates: https://www.ncbi.nlm.nih.gov/pubmed/18269982
-    //TODO: Implement DTW-based repetition detection
 
     //TODO: Refactor at least data processing part to insantiated class
 
@@ -21,7 +27,7 @@ public class DataUtils {
     public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
-    private static final float EXPANSION_VALUE = 1.5f;
+    private static final double EXPANSION_VALUE = 1.5;
     private static final float PEAK_SIMILARITY_FACTOR = 3f;
 
     private static float[] avgNode = null;
@@ -222,19 +228,72 @@ public class DataUtils {
         return result;
     }
 
+    /**
+     *
+     * @param t1        acceleration stream
+     * @param t2        repetition pattern time series
+     * @param t1Peak    peak candidate for acceleration stream
+     * @param t2Peak    peak index in repetition pattern time series
+     * @return          DetectedBounds representing bounds of candidate for repetition
+     */
+    public static DetectedBounds detectBounds(TimeSeries t1, TimeSeries t2, Peak t1Peak, Peak t2Peak){
+        //TODO change TimeSeries class to accomodate construction from ArrayList, update of ArrayList, and other uttilities we might need
+        int s = (int) (t1Peak.index - EXPANSION_VALUE * t2Peak.index);
+        int e = (int) (t1Peak.index - EXPANSION_VALUE * (t2.size() - t2Peak.index));
+        t1.timeReadings = new ArrayList(t1.timeReadings.subList(s, e+1));
+        t1.tsArray = new ArrayList(t1.tsArray.subList(s, e+1));
+        //TODO: confirm this is what's meant by normalized distance
+        TimeWarpInfo info = FastDTW.getWarpInfoBetween(t1, t2, 5, new DistanceFunction() {
+            @Override
+            public double calcDistance(double[] vector1, double[] vector2) {
+                double dist = 0;
+                for(int i=0;i<vector1.length;i++){
+                    dist += Math.abs(vector1[i] - vector2[i]);
+                }
+                return dist;
+            }
+        });
+        //Last element s in R -> C[0]
+        ArrayList mapFirstCtoR = info.getPath().getMatchingIndexesForJ(0);
+        s = (int) mapFirstCtoR.get(mapFirstCtoR.size()-1);
+        //First element e in R -> C[n]
+        e = (int) info.getPath().getMatchingIndexesForJ(t2.size()-1).get(0);
+        double dst = info.getDistance();
+        //Find min, mean, std, rms, dur in R[s':e']
+        double max = t1Peak.amplitude;
+        double min = Double.MAX_VALUE;
+        double mean = 0;
+        double std = 0;
+        double rms = 0;
+        for(Object o : t1.tsArray){
+            TimeSeriesPoint tsp = (TimeSeriesPoint) o;
+            min = min < tsp.get(0) ? min : tsp.get(0);
+            mean += tsp.get(0);
+            rms += tsp.get(0)*tsp.get(0);
+        }
+        mean /= t1.tsArray.size();
+        for(Object o : t1.tsArray){
+            TimeSeriesPoint tsp = (TimeSeriesPoint) o;
+            std += Math.pow((tsp.get(0) - mean), 2);
+        }
+        rms = Math.sqrt((rms / t1.tsArray.size()));
+        std = Math.sqrt((std/(t1.tsArray.size()-1)));
+        return new DetectedBounds(s, e, dst, max, min, std, rms);
+    }
+    
     public static boolean accept(DetectedBounds bounds){
         //TODO logistic regression to find coefficients
-        final float b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
-        float res = b0 + (b1 * bounds.dst) + (b2 * bounds.max) + (b3 * bounds.min) + (b4 * bounds.sd)
+        final double b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
+        double res = b0 + (b1 * bounds.dst) + (b2 * bounds.max) + (b3 * bounds.min) + (b4 * bounds.sd)
                 + (b5 * bounds.rms) + (b6 * bounds.dur);
         return 1/(1+Math.exp(-1.0*res)) >= .5;
     }
 
-    private class DetectedBounds {
-        float dst, max, min, sd, rms, dur;
+    private static class DetectedBounds {
+        double dst, max, min, sd, rms, dur;
         int s, e;
 
-        public DetectedBounds(int s, int e, float dst, float max, float min, float sd, float rms){
+        public DetectedBounds(int s, int e, double dst, double max, double min, double sd, double rms){
             this.s = s; this.e = e; this.dst = dst; this.max = max; this.min = min; this.sd = sd;
             this.rms = rms; this.dur = e - s;
         }
