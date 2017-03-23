@@ -3,7 +3,11 @@ package edu.temple.gymminder;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 
@@ -149,6 +153,82 @@ public class DataUtilsTest {
         avgNode = new float[]{10f, 10f};
         result = DataUtils.average(avgNode, newNode[0], newNode[1]);
         assertEquals(16.66f, result[0], .1);
+    }
+
+    @Test
+    public void testSuccsesfulRemovalOfPeaks() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Class[] classes = DataUtils.class.getDeclaredClasses();
+        Class peakClass = null;
+        for(Class c : classes){
+            if(c.getName().equals("edu.temple.gymminder.DataUtils$Peak")){
+                peakClass = c;
+                break;
+            }
+        }
+        Constructor constr = peakClass.getDeclaredConstructors()[0];
+        constr.setAccessible(true);
+        Object originalPeak = constr.newInstance(null, 0, 10f);
+        ArrayList<Object> peaks = new ArrayList<>();
+        Random rand = new Random();
+        for(int i=0;i<10;i++){
+            peaks.add(constr.newInstance(null, 0, rand.nextFloat()*3));
+        }
+        assertEquals(10, peaks.size());
+        peaks = (ArrayList<Object>) DataUtils.class
+                .getDeclaredMethod("reducePeaks", ArrayList.class, originalPeak.getClass())
+                .invoke(null, peaks, originalPeak);
+        assertEquals(0, peaks.size());
+    }
+
+    @Test
+    public void testNonRemovalOfValidPeaks() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+        Class[] classes = DataUtils.class.getDeclaredClasses();
+        Class peakClass = null;
+        for(Class c : classes){
+            if(c.getName().equals("edu.temple.gymminder.DataUtils$Peak")){
+                peakClass = c;
+                break;
+            }
+        }
+        Constructor constr = peakClass.getDeclaredConstructors()[0];
+        constr.setAccessible(true);
+        Object originalPeak = constr.newInstance(null, 0, 10f);
+        ArrayList<Object> peaks = new ArrayList<>();
+        Random rand = new Random();
+        for(int i=0;i<10;i++){
+            peaks.add(constr.newInstance(null, 0, 3.34f+rand.nextFloat()*7f));
+        }
+        assertEquals(10, peaks.size());
+        peaks = (ArrayList<Object>) DataUtils.class
+                .getDeclaredMethod("reducePeaks", ArrayList.class, originalPeak.getClass())
+                .invoke(null, peaks, originalPeak);
+        assertEquals(10, peaks.size());
+    }
+
+    @Test
+    public void testAccept() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+        Class[] classes = DataUtils.class.getDeclaredClasses();
+        Class boundsClass = null;
+        for(Class c : classes){
+            if(c.getName().equals("edu.temple.gymminder.DataUtils$DetectedBounds")){
+                boundsClass = c;
+                break;
+            }
+        }
+        Constructor constr = boundsClass.getDeclaredConstructors()[0];
+        constr.setAccessible(true);
+        //TODO: change constructor call when coefficients are found
+        Object bounds = constr.newInstance(null, 0, 0, 0f, 0f, 0f, 0f, 0f);
+        boolean x = (boolean) DataUtils.class
+                .getDeclaredMethod("accept", bounds.getClass())
+                .invoke(null, bounds);
+        assertEquals(true, x);
+
+        bounds = constr.newInstance(null, -1, 0, 0f, 0f, 0f, 0f, 0f);
+        x = (boolean) DataUtils.class
+                .getDeclaredMethod("accept", bounds.getClass())
+                .invoke(null, bounds);
+        assertEquals(x, true);
     }
 
 }

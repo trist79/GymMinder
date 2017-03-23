@@ -212,18 +212,19 @@ public class DataUtils {
         processedData.add(index, sum / FILTER_SUM);
     }
 
-    ArrayList<Peak> reducePeaks(ArrayList<Peak> peaks, Peak originalPeak){
+    public static ArrayList<Peak> reducePeaks(ArrayList<Peak> peaks, Peak originalPeak){
+        ArrayList<Peak> result = new ArrayList<>();
         for(Peak p : peaks){
-            if(p.amplitude < ( Math.pow(PEAK_SIMILARITY_FACTOR, -1) * originalPeak.amplitude )){
-                peaks.remove(p);
+            if(p.amplitude >= ( Math.pow(PEAK_SIMILARITY_FACTOR, -1) * originalPeak.amplitude )){
+                result.add(p);
             }
         }
-        return peaks;
+        return result;
     }
 
-    boolean accept(DetectedBounds bounds){
+    public static boolean accept(DetectedBounds bounds){
         //TODO logistic regression to find coefficients
-        final float b0 = 1, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
+        final float b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
         float res = b0 + (b1 * bounds.dst) + (b2 * bounds.max) + (b3 * bounds.min) + (b4 * bounds.sd)
                 + (b5 * bounds.rms) + (b6 * bounds.dur);
         return 1/(1+Math.exp(-1.0*res)) >= .5;
