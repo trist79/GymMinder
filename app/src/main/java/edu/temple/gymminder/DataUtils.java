@@ -5,11 +5,14 @@ import android.hardware.SensorEvent;
 import com.dtw.FastDTW;
 import com.dtw.TimeWarpInfo;
 import com.dtw.WarpPath;
+import com.fastdtw.util.Distances;
 import com.timeseries.TimeSeries;
 import com.timeseries.TimeSeriesPoint;
 import com.util.DistanceFunction;
+import com.util.EuclideanDistance;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,8 +21,6 @@ import java.util.List;
  */
 
 public class DataUtils {
-
-    //TODO: Implement selection of peak candidates: https://www.ncbi.nlm.nih.gov/pubmed/18269982
 
     //TODO: Refactor at least data processing part to insantiated class
 
@@ -34,6 +35,10 @@ public class DataUtils {
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
+    private static HashMap<Integer, Peak> peaks = new HashMap<>(); //TODO: more intelligent initial capacity using right window size
+    //TODO initialize these values from stored value
+    private static Peak repPeak;
+    private static TimeSeries repTimeSeries;
 
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
@@ -135,6 +140,7 @@ public class DataUtils {
      * @param event SensorEvent containing data point to be processed
      */
     static void process(SensorEvent event) {
+        //TODO: determine which index the major axis is so we don't have to loop
         for (int i = 0; i < 3; i++) {
             float x = Math.abs(event.values[i] > 0.09 ? event.values[i] : 0);
             float duration = event.timestamp - timestamps.get(timestamps.size() - 1) * MS2S_CONVERSION;
@@ -150,8 +156,47 @@ public class DataUtils {
                 data.get(i).add(x);
                 applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
                 avgNode = null;
+                Peak newPeak = detectPeak();
+                //TODO: Probably want to put this in a thread that enqueues new peaks to check
+                if(newPeak != null){
+                    /*
+                        The key for our HashMap is the index of the new peak, which is the current
+                        size of processedData at the time of insertion, plus the difference between
+                        the size of repTimeSeries and the index of repPeak multiplied by
+                        EXPANSION_VALUE.
+                     */
+                    peaks.put((int) (newPeak.index + EXPANSION_VALUE *
+                            (repTimeSeries.size() - repPeak.index)), newPeak);
+                }
+                if(peaks.containsKey(processedData.size())){
+                    /*
+                        Because we used an index for our HashMap key value, we can use the
+                        current index to detect if any peaks are ready to be examined
+                     */
+                    TimeSeries t1 = null; //TODO create TimeSeries from newPeak and processedData
+                    DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.size()));
+
+                    peaks.remove(processedData.size());
+                    if(accept(bounds)){
+                        /*
+                            This was a valid repetition, so we want to vibrate and remove any
+                            potential peaks that we now know are contained within the repetition
+                         */
+                        for(int j=processedData.size()+1; j<processedData.size()+1+bounds.e; j++){
+                            if(peaks.containsKey(j)) peaks.remove(j);
+                        }
+                    }
+
+                }
+
             }
         }
+    }
+
+
+    private static Peak detectPeak() {
+        //TODO: Implement selection of peak candidates: https://www.ncbi.nlm.nih.gov/pubmed/18269982
+        return null;
     }
 
     /**
@@ -231,35 +276,24 @@ public class DataUtils {
     /**
      *
      * @param t1        acceleration stream
-     * @param t2        repetition pattern time series
      * @param t1Peak    peak candidate for acceleration stream
-     * @param t2Peak    peak index in repetition pattern time series
      * @return          DetectedBounds representing bounds of candidate for repetition
      */
-    public static DetectedBounds detectBounds(TimeSeries t1, TimeSeries t2, Peak t1Peak, Peak t2Peak){
-        //TODO change TimeSeries class to accomodate construction from ArrayList, update of ArrayList, and other uttilities we might need
-        int s = (int) (t1Peak.index - EXPANSION_VALUE * t2Peak.index);
-        int e = (int) (t1Peak.index - EXPANSION_VALUE * (t2.size() - t2Peak.index));
+    public static DetectedBounds detectBounds(TimeSeries t1, Peak t1Peak){
+        //TODO change TimeSeries class to accomodate construction from ArrayList, update of ArrayList, and other utilities we might need
+        int s = (int) (t1Peak.index - EXPANSION_VALUE * repPeak.index);
+        int e = (int) (t1Peak.index - EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
         t1.timeReadings = new ArrayList(t1.timeReadings.subList(s, e+1));
         t1.tsArray = new ArrayList(t1.tsArray.subList(s, e+1));
-        //TODO: confirm this is what's meant by normalized distance
-        TimeWarpInfo info = FastDTW.getWarpInfoBetween(t1, t2, 5, new DistanceFunction() {
-            @Override
-            public double calcDistance(double[] vector1, double[] vector2) {
-                double dist = 0;
-                for(int i=0;i<vector1.length;i++){
-                    dist += Math.abs(vector1[i] - vector2[i]);
-                }
-                return dist;
-            }
-        });
+        TimeWarpInfo info = FastDTW.getWarpInfoBetween(t1, repTimeSeries, 5, new EuclideanDistance());
         //Last element s in R -> C[0]
         ArrayList mapFirstCtoR = info.getPath().getMatchingIndexesForJ(0);
         s = (int) mapFirstCtoR.get(mapFirstCtoR.size()-1);
         //First element e in R -> C[n]
-        e = (int) info.getPath().getMatchingIndexesForJ(t2.size()-1).get(0);
-        double dst = info.getDistance();
+        e = (int) info.getPath().getMatchingIndexesForJ(repTimeSeries.size()-1).get(0);
+        //TODO: confirm this is what's meant by normalized distance
         //Find min, mean, std, rms, dur in R[s':e']
+        double dst = FastDTW.getWarpInfoBetween(t1, repTimeSeries, 5, new EuclideanDistance()).getDistance();  //TODO maybe find a way to do this faster
         double max = t1Peak.amplitude;
         double min = Double.MAX_VALUE;
         double mean = 0;
@@ -280,7 +314,7 @@ public class DataUtils {
         std = Math.sqrt((std/(t1.tsArray.size()-1)));
         return new DetectedBounds(s, e, dst, max, min, std, rms);
     }
-    
+
     public static boolean accept(DetectedBounds bounds){
         //TODO logistic regression to find coefficients
         final double b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
