@@ -21,20 +21,23 @@ import java.util.List;
 
 public class DataUtils {
 
-    //TODO: Refactor at least data processing part to insantiated class
+    //TODO: Refactor at least data processing part to instantiated class
 
     public static final float MS2S_CONVERSION = 1.0f / 1000000000.0f;
+    public static final long SECOND = 1000000000;
     public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
     private static final float PEAK_SIMILARITY_FACTOR = 3f;
+    private static final double ERROR = 0.00001;
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
     private static HashMap<Integer, Peak> peaks = new HashMap<>(); //TODO: more intelligent initial capacity using right window size
+
     //TODO initialize these values from stored value
     private static Peak repPeak;
     private static TimeSeries repTimeSeries;
@@ -136,60 +139,75 @@ public class DataUtils {
      * interpolates a data point at the desired frequency using the newest data point and the
      * data point most recently added into the data array
      *
-     * @param event SensorEvent containing data point to be processed
+     * @param values    event values
+     * @param timestamp timestamp of event
      */
-    static void process(SensorEvent event) {
-        //TODO: determine which index the major axis is so we don't have to loop
-        for (int i = 0; i < 3; i++) {
-            float x = Math.abs(event.values[i] > 0.09 ? event.values[i] : 0);
-            float duration = event.timestamp - timestamps.get(timestamps.size() - 1) * MS2S_CONVERSION;
-            if (duration < PERIOD) {
-                //average the points with sum node
-                avgNode = average(avgNode, x, duration);
-                duration = avgNode[1];
-                x = avgNode[0];
-            }
-            if (duration >= PERIOD) {
-                //interpolate if needed
-                if (duration > PERIOD) x = interpolate(x, duration, i);
-                data.get(i).add(x);
-                applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
-                avgNode = null;
-                Peak newPeak = detectPeak();
-                //TODO: Probably want to put this in a thread that enqueues new peaks to check
-                if(newPeak != null){
+    static void process(float[] values, long timestamp) {
+        int i = 0; //TODO: determine which index is the major axis
+
+        float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
+        //First time adding a node, just add it lel
+        if(timestamps.size()==0){
+            timestamps.add(timestamp);
+            data.get(i).add(x);
+            processedData.get(i).add(x);
+            return;
+        }
+        float duration = timestamp - timestamps.get(timestamps.size() - 1) * MS2S_CONVERSION;
+
+        if ((duration + ERROR) < PERIOD || avgNode != null) {
+            //average the points with sum node
+            avgNode = average(avgNode, x, duration);
+            duration = avgNode[1];
+            x = avgNode[0];
+        }
+        if ((duration + ERROR) >= PERIOD) {
+            //interpolate if needed
+            if ((duration + ERROR) > PERIOD) x = interpolate(x, duration, i);
+            //We can approximate timestamp value by adding .1s to previous value
+            //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
+            timestamps.add(timestamps.get(timestamps.size()-1)+ (long)(SECOND*PERIOD));
+            data.get(i).add(x);
+            //TODO: make this process most recent 3 nodes at once
+            applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
+            avgNode = null;
+            Peak newPeak = detectPeak();
+            //TODO: Probably want to put this in a thread that enqueues new peaks to check
+            if (newPeak != null) {
                     /*
                         The key for our HashMap is the index of the new peak, which is the current
                         size of processedData at the time of insertion, plus the difference between
                         the size of repTimeSeries and the index of repPeak multiplied by
                         EXPANSION_VALUE.
                      */
-                    peaks.put((int) (newPeak.index + EXPANSION_VALUE *
-                            (repTimeSeries.size() - repPeak.index)), newPeak);
-                }
-                if(peaks.containsKey(processedData.size())){
+                peaks.put((int) (newPeak.index + EXPANSION_VALUE *
+                        (repTimeSeries.size() - repPeak.index)), newPeak);
+            }
+            if (peaks.containsKey(processedData.get(0).size())) {
                     /*
                         Because we used an index for our HashMap key value, we can use the
                         current index to detect if any peaks are ready to be examined
                      */
-                    TimeSeries t1 = null; //TODO create TimeSeries from newPeak and processedData
-                    DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.size()));
+                TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+                for(int j=0; j<processedData.get(i).size(); j++) builder = builder.add(j, processedData.get(i).get(j));
+                TimeSeries t1 = builder.build();
+                DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.size()));
 
-                    peaks.remove(processedData.size());
-                    if(accept(bounds)){
+                peaks.remove(processedData.get(i).size());
+                if (accept(bounds)) {
                         /*
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
-                        for(int j=processedData.size()+1; j<processedData.size()+1+bounds.e; j++){
-                            if(peaks.containsKey(j)) peaks.remove(j);
-                        }
+                    for (int j = processedData.get(i).size() + 1; j < processedData.get(i).size() + 1 + bounds.e; j++) {
+                        if (peaks.containsKey(j)) peaks.remove(j);
                     }
-
                 }
 
             }
+
         }
+
     }
 
 
@@ -296,7 +314,6 @@ public class DataUtils {
         int endIndexI = cell.getRow(); //ditto comments above
         int i;
         for(i=path.size()-2; endIndexI == cell.getRow() && i>=0; i--){
-            System.out.println("["+cell.getRow()+","+endIndexI+"]");
             cell = path.get(i);
         }
         //Work backwards this time so add the two back
@@ -310,7 +327,6 @@ public class DataUtils {
      * @return          DetectedBounds representing bounds of candidate for repetition
      */
     public static DetectedBounds detectBounds(TimeSeries t1, Peak t1Peak){
-        //TODO change TimeSeries class to accomodate construction from ArrayList, update of ArrayList, and other utilities we might need
         int s = (int) (t1Peak.index - EXPANSION_VALUE * repPeak.index);
         int e = (int) (t1Peak.index - EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
         t1 = subSeries(t1, s, e);
@@ -319,8 +335,9 @@ public class DataUtils {
         s = getLastMatchingIndexOfFirst(info.getPath());
         //First element e in R -> C[n]
         e = getFirstMatchingIndexOfLast(info.getPath());
-        //TODO: confirm this is what's meant by normalized distance
         //Find min, mean, std, rms, dur in R[s':e']
+        t1 = subSeries(t1, s, e);
+        //TODO: confirm this is what's meant by normalized distance
         double dst = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE).getDistance();  //TODO maybe find a way to do this faster
         double max = t1Peak.amplitude;
         double min = Double.MAX_VALUE;
