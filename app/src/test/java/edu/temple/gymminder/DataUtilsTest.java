@@ -1,5 +1,11 @@
 package edu.temple.gymminder;
 
+import com.fastdtw.dtw.FastDTW;
+import com.fastdtw.dtw.WarpPath;
+import com.fastdtw.timeseries.TimeSeries;
+import com.fastdtw.timeseries.TimeSeriesBase;
+import com.fastdtw.util.Distances;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -229,6 +235,59 @@ public class DataUtilsTest {
                 .getDeclaredMethod("accept", bounds.getClass())
                 .invoke(null, bounds);
         assertEquals(x, true);
+    }
+
+    @Test
+    public void testGetLastMatchingIndexOfFirst(){
+        TimeSeriesBase.Builder builder1 = TimeSeriesBase.builder();
+        TimeSeriesBase.Builder builder2 = TimeSeriesBase.builder();
+        for(int i=0; i<2; i++){
+            builder1 = builder1.add(i, 0);
+        }
+        for(int i=0; i<10; i++){
+            builder1 = builder1.add(i+2, i);
+            builder2 = builder2.add(i, i);
+        }
+        TimeSeries t1 = builder1.build();
+        TimeSeries t2 = builder2.build();
+        WarpPath path = FastDTW.compare(t1, t2, Distances.EUCLIDEAN_DISTANCE).getPath();
+        for(int i=0;i<path.size();i++) System.out.println(path.get(i));
+        int index = DataUtils.getLastMatchingIndexOfFirst(path);
+        //Last matching index should be third, since we added 2 extra values
+        assertEquals(2, index);
+    }
+
+    @Test
+    public void testGetFirstMatchingIndexOfLast(){
+        TimeSeriesBase.Builder builder1 = TimeSeriesBase.builder();
+        TimeSeriesBase.Builder builder2 = TimeSeriesBase.builder();
+        for(int i=0; i<10; i++){
+            builder1 = builder1.add(i, i);
+            builder2 = builder2.add(i, i);
+        }
+        for(int i=0; i<2; i++){
+            builder1 = builder1.add(i+10, 10);
+        }
+        TimeSeries t1 = builder1.build();
+        TimeSeries t2 = builder2.build();
+        WarpPath path = FastDTW.compare(t1, t2, Distances.EUCLIDEAN_DISTANCE).getPath();
+        for(int i=0;i<path.size();i++) System.out.println(path.get(i));
+        int index = DataUtils.getFirstMatchingIndexOfLast(path);
+        assertEquals(9, index);
+    }
+
+    @Test
+    public void testSubSeries(){
+        TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+        for(int i=0; i<10; i++){
+            builder = builder.add(i, i);
+        }
+        TimeSeries ts = builder.build();
+        assertEquals(10, ts.size());
+        ts = DataUtils.subSeries(ts, 2, 8);
+        assertEquals(2, ts.getMeasurement(0, 0), 0);
+        assertEquals(7, ts.getMeasurement(5, 0), 0);
+        assertEquals(6, ts.size());
     }
 
 }

@@ -2,14 +2,13 @@ package edu.temple.gymminder;
 
 import android.hardware.SensorEvent;
 
-import com.dtw.FastDTW;
-import com.dtw.TimeWarpInfo;
-import com.dtw.WarpPath;
+import com.fastdtw.dtw.FastDTW;
+import com.fastdtw.dtw.TimeWarpInfo;
+import com.fastdtw.dtw.WarpPath;
+import com.fastdtw.matrix.ColMajorCell;
+import com.fastdtw.timeseries.TimeSeries;
+import com.fastdtw.timeseries.TimeSeriesBase;
 import com.fastdtw.util.Distances;
-import com.timeseries.TimeSeries;
-import com.timeseries.TimeSeriesPoint;
-import com.util.DistanceFunction;
-import com.util.EuclideanDistance;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -273,6 +272,37 @@ public class DataUtils {
         return result;
     }
 
+    public static TimeSeries subSeries(TimeSeries series, int start, int end){
+        TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+        for(int i = start; i<end; i++){
+            builder.add(series.getTimeAtNthPoint(i), series.getMeasurement(i, 0));
+        }
+        return builder.build();
+    }
+
+    public static int getLastMatchingIndexOfFirst(WarpPath path){
+        ColMajorCell cell = path.get(0);
+        int startIndexI = cell.getRow(); //This might need to be cell.getCol()
+        int i;
+        for(i=1; startIndexI == cell.getRow() && i<path.size(); i++){
+            cell = path.get(i);
+        }
+        //Subtract 2 because the index is not valid, and then i++ was called again
+        return path.get(i-2).getCol(); //If cell.getRow() changes, so does this
+    }
+
+    public static int getFirstMatchingIndexOfLast(WarpPath path){
+        ColMajorCell cell = path.get(path.size()-1);
+        int endIndexI = cell.getRow(); //ditto comments above
+        int i;
+        for(i=path.size()-2; endIndexI == cell.getRow() && i>=0; i--){
+            System.out.println("["+cell.getRow()+","+endIndexI+"]");
+            cell = path.get(i);
+        }
+        //Work backwards this time so add the two back
+        return path.get(i+2).getCol();
+    }
+
     /**
      *
      * @param t1        acceleration stream
@@ -283,35 +313,33 @@ public class DataUtils {
         //TODO change TimeSeries class to accomodate construction from ArrayList, update of ArrayList, and other utilities we might need
         int s = (int) (t1Peak.index - EXPANSION_VALUE * repPeak.index);
         int e = (int) (t1Peak.index - EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
-        t1.timeReadings = new ArrayList(t1.timeReadings.subList(s, e+1));
-        t1.tsArray = new ArrayList(t1.tsArray.subList(s, e+1));
-        TimeWarpInfo info = FastDTW.getWarpInfoBetween(t1, repTimeSeries, 5, new EuclideanDistance());
+        t1 = subSeries(t1, s, e);
+        TimeWarpInfo info = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE);
         //Last element s in R -> C[0]
-        ArrayList mapFirstCtoR = info.getPath().getMatchingIndexesForJ(0);
-        s = (int) mapFirstCtoR.get(mapFirstCtoR.size()-1);
+        s = getLastMatchingIndexOfFirst(info.getPath());
         //First element e in R -> C[n]
-        e = (int) info.getPath().getMatchingIndexesForJ(repTimeSeries.size()-1).get(0);
+        e = getFirstMatchingIndexOfLast(info.getPath());
         //TODO: confirm this is what's meant by normalized distance
         //Find min, mean, std, rms, dur in R[s':e']
-        double dst = FastDTW.getWarpInfoBetween(t1, repTimeSeries, 5, new EuclideanDistance()).getDistance();  //TODO maybe find a way to do this faster
+        double dst = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE).getDistance();  //TODO maybe find a way to do this faster
         double max = t1Peak.amplitude;
         double min = Double.MAX_VALUE;
         double mean = 0;
         double std = 0;
         double rms = 0;
-        for(Object o : t1.tsArray){
-            TimeSeriesPoint tsp = (TimeSeriesPoint) o;
-            min = min < tsp.get(0) ? min : tsp.get(0);
-            mean += tsp.get(0);
-            rms += tsp.get(0)*tsp.get(0);
+        for(int i=0; i<t1.size(); i++){
+            double value = t1.getMeasurement(i, 0);
+            min = min < value ? min : value;
+            mean += value;
+            rms += value*value;
         }
-        mean /= t1.tsArray.size();
-        for(Object o : t1.tsArray){
-            TimeSeriesPoint tsp = (TimeSeriesPoint) o;
-            std += Math.pow((tsp.get(0) - mean), 2);
+        mean /= t1.size();
+        for(int i=0; i<t1.size(); i++){
+            double value = t1.getMeasurement(i, 0);
+            std += Math.pow((value - mean), 2);
         }
-        rms = Math.sqrt((rms / t1.tsArray.size()));
-        std = Math.sqrt((std/(t1.tsArray.size()-1)));
+        rms = Math.sqrt((rms / t1.size()));
+        std = Math.sqrt((std/(t1.size()-1)));
         return new DetectedBounds(s, e, dst, max, min, std, rms);
     }
 
