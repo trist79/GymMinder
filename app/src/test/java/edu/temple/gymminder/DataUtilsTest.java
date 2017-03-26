@@ -8,7 +8,14 @@ import com.fastdtw.util.Distances;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,12 +23,14 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
+@RunWith(MockitoJUnitRunner.class)
 public class DataUtilsTest {
 
     public static final long PERIOD = 10L;
@@ -175,11 +184,11 @@ public class DataUtilsTest {
         }
         Constructor constr = peakClass.getDeclaredConstructors()[0];
         constr.setAccessible(true);
-        Object originalPeak = constr.newInstance(null, 0, 10f);
+        Object originalPeak = constr.newInstance(0, 10f);
         ArrayList<Object> peaks = new ArrayList<>();
         Random rand = new Random();
         for(int i=0;i<10;i++){
-            peaks.add(constr.newInstance(null, 0, rand.nextFloat()*3));
+            peaks.add(constr.newInstance(0, rand.nextFloat()*3));
         }
         assertEquals(10, peaks.size());
         peaks = (ArrayList<Object>) DataUtils.class
@@ -200,11 +209,11 @@ public class DataUtilsTest {
         }
         Constructor constr = peakClass.getDeclaredConstructors()[0];
         constr.setAccessible(true);
-        Object originalPeak = constr.newInstance(null, 0, 10f);
+        Object originalPeak = constr.newInstance(0, 10f);
         ArrayList<Object> peaks = new ArrayList<>();
         Random rand = new Random();
         for(int i=0;i<10;i++){
-            peaks.add(constr.newInstance(null, 0, 3.34f+rand.nextFloat()*7f));
+            peaks.add(constr.newInstance(0, 3.34f+rand.nextFloat()*7f));
         }
         assertEquals(10, peaks.size());
         peaks = (ArrayList<Object>) DataUtils.class
@@ -326,5 +335,19 @@ public class DataUtilsTest {
         assertEquals(50, processed.get(0).size());
     }
 
+    @Mock
+    BufferedReader reader;
+
+    @Test
+    public void testLoadRepetitionPatternTimeSeries() throws IOException {
+        when(reader.readLine())
+                .thenReturn("1.4,2,3.6,4,5,6.3,7,8,9")
+                .thenReturn("5,6.3");
+        DataUtils.loadRepetitionPatternTimeSeries(reader);
+        //TODO: use reflection and set these back to private... do it with some other things too...
+        assertNotNull(DataUtils.repPeak);
+        assertNotNull(DataUtils.repTimeSeries);
+        assertEquals(9, DataUtils.repTimeSeries.size());
+    }
 
 }

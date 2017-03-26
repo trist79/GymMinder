@@ -10,6 +10,11 @@ import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesBase;
 import com.fastdtw.util.Distances;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,8 +44,8 @@ public class DataUtils {
     private static HashMap<Integer, Peak> peaks = new HashMap<>(); //TODO: more intelligent initial capacity using right window size
 
     //TODO initialize these values from stored value
-    private static Peak repPeak;
-    private static TimeSeries repTimeSeries;
+    public static Peak repPeak;
+    public static TimeSeries repTimeSeries;
 
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
@@ -368,6 +373,24 @@ public class DataUtils {
         return 1/(1+Math.exp(-1.0*res)) >= .5;
     }
 
+    public static void loadRepetitionPatternTimeSeries(BufferedReader reader){
+        TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+        try {
+            String line = reader.readLine();
+            String[] numbers = line.split(",");
+            int i = 0;
+            for(String s : numbers){
+                builder = builder.add(i++, Float.parseFloat(s));
+            }
+            line = reader.readLine();
+            numbers = line.split(",");
+            repTimeSeries = builder.build();
+            repPeak = new Peak(Integer.parseInt(numbers[0]), Float.parseFloat(numbers[1]));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static class DetectedBounds {
         double dst, max, min, sd, rms, dur;
         int s, e;
@@ -378,7 +401,7 @@ public class DataUtils {
         }
     }
 
-    private class Peak {
+    private static class Peak {
         float amplitude;
         int index;
 
