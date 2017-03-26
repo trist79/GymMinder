@@ -29,7 +29,7 @@ public class DataUtils {
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
-    private static final float PEAK_SIMILARITY_FACTOR = 3f;
+    private static final double PEAK_SIMILARITY_FACTOR = 3;
     private static final double ERROR = 0.00001;
 
     private static float[] avgNode = null;
@@ -153,7 +153,7 @@ public class DataUtils {
             processedData.get(i).add(x);
             return;
         }
-        float duration = timestamp - timestamps.get(timestamps.size() - 1) * MS2S_CONVERSION;
+        float duration = (timestamp - timestamps.get(timestamps.size() - 1)) * MS2S_CONVERSION;
 
         if ((duration + ERROR) < PERIOD || avgNode != null) {
             //average the points with sum node

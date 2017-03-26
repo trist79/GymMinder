@@ -291,15 +291,40 @@ public class DataUtilsTest {
     }
 
     @Test
-    public void processDoesNotCrash(){ 
+    public void processDoesNotCrash(){
         timestamps = new ArrayList<>();
         DataUtils.init(data, timestamps, processed);
         long timestamp = 1000000000L;
         Random random = new Random();
         for(int i=0; i<100; i++){
             float[] values = {random.nextFloat(), random.nextFloat(), random.nextFloat()};
-            DataUtils.process(values, timestamp+100000000*i);
+            DataUtils.process(values, timestamp+100000000L*i);
         }
     }
+
+    @Test
+    public void processCorrectlyAddsValuesWithTimestampsGreaterThanPeriod(){
+        processDoesNotCrash();
+        assertEquals(100, timestamps.size());
+        assertEquals(100, data.get(0).size());
+        assertEquals(100, processed.get(0).size());
+    }
+
+    @Test
+    public void processCorrectlyAddsValuesWithTimestampsLessThanPeriod(){
+        timestamps = new ArrayList<>();
+        DataUtils.init(data, timestamps, processed);
+        long timestamp = 1000000000L;
+        Random random = new Random();
+        for(int i=0; i<100; i++){
+            float[] values = {random.nextFloat(), random.nextFloat(), random.nextFloat()};
+            DataUtils.process(values, timestamp+50000000L*i);
+        }
+        //Should be 1+floor(99/2)
+        assertEquals(50, timestamps.size());
+        assertEquals(50, data.get(0).size());
+        assertEquals(50, processed.get(0).size());
+    }
+
 
 }
