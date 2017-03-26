@@ -37,7 +37,7 @@ public class DataActivity extends Activity {
         sm.registerListener(new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
-                DataUtils.process(event);
+                DataUtils.process(event.values, event.timestamp);
                 //Get values, ignore low value movement
 //                float x = Math.abs(event.values[0]) > 0.09 ? event.values[0] : 0;
 //                float y = Math.abs(event.values[1]) > 0.09 ? event.values[1] : 0;

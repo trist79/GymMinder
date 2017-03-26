@@ -28,6 +28,7 @@ public class DataUtilsTest {
     public static final int S2MS_CONVERSION = 1000000000;
     ArrayList<ArrayList<Float>> data = new ArrayList<>();
     ArrayList<ArrayList<Float>> processed = new ArrayList<>();
+    ArrayList<Long> timestamps;
 
     @Before
     public void initDataUtils() {
@@ -35,7 +36,7 @@ public class DataUtilsTest {
             data.add(new ArrayList<Float>());
             processed.add(new ArrayList<Float>());
         }
-        ArrayList<Long> timestamps = new ArrayList<>();
+        timestamps = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             timestamps.add(PERIOD * i * S2MS_CONVERSION);
         }
@@ -159,6 +160,7 @@ public class DataUtilsTest {
         avgNode = new float[]{10f, 10f};
         result = DataUtils.average(avgNode, newNode[0], newNode[1]);
         assertEquals(16.66f, result[0], .1);
+        assertEquals(30f, result[1], .1);
     }
 
     @Test
@@ -224,13 +226,13 @@ public class DataUtilsTest {
         Constructor constr = boundsClass.getDeclaredConstructors()[0];
         constr.setAccessible(true);
         //TODO: change constructor call when coefficients are found
-        Object bounds = constr.newInstance(null, 0, 0, 0f, 0f, 0f, 0f, 0f);
+        Object bounds = constr.newInstance(0, 0, 0f, 0f, 0f, 0f, 0f);
         boolean x = (boolean) DataUtils.class
                 .getDeclaredMethod("accept", bounds.getClass())
                 .invoke(null, bounds);
         assertEquals(true, x);
 
-        bounds = constr.newInstance(null, -1, 0, 0f, 0f, 0f, 0f, 0f);
+        bounds = constr.newInstance(-1, 0, 0f, 0f, 0f, 0f, 0f);
         x = (boolean) DataUtils.class
                 .getDeclaredMethod("accept", bounds.getClass())
                 .invoke(null, bounds);
@@ -251,7 +253,6 @@ public class DataUtilsTest {
         TimeSeries t1 = builder1.build();
         TimeSeries t2 = builder2.build();
         WarpPath path = FastDTW.compare(t1, t2, Distances.EUCLIDEAN_DISTANCE).getPath();
-        for(int i=0;i<path.size();i++) System.out.println(path.get(i));
         int index = DataUtils.getLastMatchingIndexOfFirst(path);
         //Last matching index should be third, since we added 2 extra values
         assertEquals(2, index);
@@ -271,7 +272,6 @@ public class DataUtilsTest {
         TimeSeries t1 = builder1.build();
         TimeSeries t2 = builder2.build();
         WarpPath path = FastDTW.compare(t1, t2, Distances.EUCLIDEAN_DISTANCE).getPath();
-        for(int i=0;i<path.size();i++) System.out.println(path.get(i));
         int index = DataUtils.getFirstMatchingIndexOfLast(path);
         assertEquals(9, index);
     }
@@ -288,6 +288,18 @@ public class DataUtilsTest {
         assertEquals(2, ts.getMeasurement(0, 0), 0);
         assertEquals(7, ts.getMeasurement(5, 0), 0);
         assertEquals(6, ts.size());
+    }
+
+    @Test
+    public void processDoesNotCrash(){
+        timestamps = new ArrayList<>();
+        DataUtils.init(data, timestamps, processed);
+        long timestamp = 1000000000L;
+        Random random = new Random();
+        for(int i=0; i<100; i++){
+            float[] values = {random.nextFloat(), random.nextFloat(), random.nextFloat()};
+            DataUtils.process(values, timestamp+100000000*i);
+        }
     }
 
 }
