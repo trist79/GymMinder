@@ -291,7 +291,7 @@ public class DataUtilsTest {
     }
 
     @Test
-    public void processDoesNotCrash(){
+    public void processDoesNotCrash(){ 
         timestamps = new ArrayList<>();
         DataUtils.init(data, timestamps, processed);
         long timestamp = 1000000000L;
