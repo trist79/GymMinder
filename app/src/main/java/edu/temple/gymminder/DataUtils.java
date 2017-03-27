@@ -1,5 +1,6 @@
 package edu.temple.gymminder;
 
+import android.annotation.SuppressLint;
 import android.hardware.SensorEvent;
 
 import com.fastdtw.dtw.FastDTW;
@@ -41,9 +42,8 @@ public class DataUtils {
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
-    private static HashMap<Integer, Peak> peaks = new HashMap<>(); //TODO: more intelligent initial capacity using right window size
+    private static HashMap<Integer, Peak> peaks = new HashMap<>();
 
-    //TODO initialize these values from stored value
     public static Peak repPeak;
     public static TimeSeries repTimeSeries;
 
@@ -51,15 +51,22 @@ public class DataUtils {
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
         data = dataList;
         timestamps = time;
-        processedData = null;
-        avgNode = null;
     }
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time, ArrayList<ArrayList<Float>> processedDataList) {
-        data = dataList;
-        timestamps = time;
         processedData = processedDataList;
         avgNode = null;
+        init(dataList, time);
+    }
+
+    static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time, ArrayList<ArrayList<Float>> processedDataList, File file) {
+        init(dataList, time, processedDataList);
+        try {
+            loadRepetitionPatternTimeSeries(new BufferedReader(new FileReader(file)));
+            peaks = new HashMap<>((int) (EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index)));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -341,7 +348,7 @@ public class DataUtils {
      */
     public static DetectedBounds detectBounds(TimeSeries t1, Peak t1Peak){
         int s = (int) (t1Peak.index - EXPANSION_VALUE * repPeak.index);
-        int e = (int) (t1Peak.index - EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
+        int e = (int) (t1Peak.index + EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
         t1 = subSeries(t1, s, e);
         TimeWarpInfo info = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE);
         //Last element s in R -> C[0]
@@ -350,8 +357,13 @@ public class DataUtils {
         e = getFirstMatchingIndexOfLast(info.getPath());
         //Find min, mean, std, rms, dur in R[s':e']
         t1 = subSeries(t1, s, e);
-        //TODO: confirm this is what's meant by normalized distance
-        double dst = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE).getDistance();  //TODO maybe find a way to do this faster
+        double[] f = calcFeatures(t1, t1Peak);
+        return new DetectedBounds(s, e, f[0], f[1], f[2], f[3], f[4]);
+    }
+
+    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak){
+        //TODO maybe find a way to get dst faster
+        double dst = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE).getDistance();
         double max = t1Peak.amplitude;
         double min = Double.MAX_VALUE;
         double mean = 0;
@@ -370,7 +382,7 @@ public class DataUtils {
         }
         rms = Math.sqrt((rms / t1.size()));
         std = Math.sqrt((std/(t1.size()-1)));
-        return new DetectedBounds(s, e, dst, max, min, std, rms);
+        return new double[] { dst, max, min, std, rms };
     }
 
     public static boolean accept(DetectedBounds bounds){
