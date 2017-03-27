@@ -141,6 +141,13 @@ public class DataUtilsTest {
         for (int i = 0; i < 10; i++) {
             assertEquals(expected[i], processed.get(0).get(i), .01);
         }
+        //Run filter again to simulate re-processing data points at each run of DataUtils.process()
+        for (int i = 0; i < 10; i++) {
+            DataUtils.applySGFilterRealtime(i, data, processed.get(0));
+        }
+        for (int i = 0; i < 10; i++) {
+            assertEquals(expected[i], processed.get(0).get(i), .01);
+        }
     }
 
     @Test

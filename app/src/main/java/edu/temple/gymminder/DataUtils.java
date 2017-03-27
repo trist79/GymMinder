@@ -133,7 +133,7 @@ public class DataUtils {
     }
 
     /**
-     * Adds data point into the uniformly-spaced and smoothed data array
+     * Adds data point into the uniformly-spaced and smoothed data array, and processes peak values
      * <p>
      * avgNode is used by this method when the real polling frequency of the device
      * is higher than the desired polling frequency, and represents all data points not yet
@@ -173,8 +173,15 @@ public class DataUtils {
             //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
             timestamps.add(timestamps.get(timestamps.size()-1)+ (long)(SECOND*PERIOD));
             data.get(i).add(x);
-            //TODO: make this process most recent 3 nodes at once
-            applySGFilterRealtime(processedData.get(i).size(), data.get(i), processedData.get(i));
+            int size = processedData.get(i).size();
+            for (int j = size; j >= size - (SG_FILTER.length/2-1) && j > 0; j--) {
+                /*
+                    We want to re-process any data points that didn't have enough data to the right
+                    for the entire filter to run on. The alternative to this is to delay the signal
+                    by waiting until we have enough data points for the entire filter.
+                 */
+                applySGFilterRealtime(j, data.get(i), processedData.get(i));
+            }
             avgNode = null;
             Peak newPeak = detectPeak();
             //TODO: Probably want to put this in a thread that enqueues new peaks to check
@@ -204,7 +211,7 @@ public class DataUtils {
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
-                    for (int j = processedData.get(i).size() + 1; j < processedData.get(i).size() + 1 + bounds.e; j++) {
+                    for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + bounds.e); j++) {
                         if (peaks.containsKey(j)) peaks.remove(j);
                     }
                 }
@@ -282,7 +289,8 @@ public class DataUtils {
                 sum += SG_FILTER[i] * data.get(i + index - SG_FILTER.length / 2);
             }
         }
-        processedData.add(index, sum / FILTER_SUM);
+        if(index == processedData.size())   processedData.add(index, sum / FILTER_SUM);
+        else                                processedData.set(index, sum / FILTER_SUM);
     }
 
     public static ArrayList<Peak> reducePeaks(ArrayList<Peak> peaks, Peak originalPeak){
