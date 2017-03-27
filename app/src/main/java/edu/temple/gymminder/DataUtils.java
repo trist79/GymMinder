@@ -1,6 +1,5 @@
 package edu.temple.gymminder;
 
-import android.annotation.SuppressLint;
 import android.hardware.SensorEvent;
 
 import com.fastdtw.dtw.FastDTW;
@@ -47,6 +46,7 @@ public class DataUtils {
     public static Peak repPeak;
     public static TimeSeries repTimeSeries;
 
+    private static Listener listener;
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
         data = dataList;
@@ -67,6 +67,15 @@ public class DataUtils {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    static void setListener(Listener l){
+        listener = l;
+    }
+
+    static void removeListener(){
+        //Need this to prevent possible memory leak
+        listener = null;
     }
 
     /**
@@ -218,6 +227,7 @@ public class DataUtils {
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
+                    if(listener!=null) listener.respondToRep();
                     for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + bounds.e); j++) {
                         if (peaks.containsKey(j)) peaks.remove(j);
                     }
@@ -361,9 +371,9 @@ public class DataUtils {
         return new DetectedBounds(s, e, f[0], f[1], f[2], f[3], f[4]);
     }
 
-    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak){
+    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak, TimeSeries t2){
         //TODO maybe find a way to get dst faster
-        double dst = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE).getDistance();
+        double dst = FastDTW.compare(t1, t2, Distances.EUCLIDEAN_DISTANCE).getDistance();
         double max = t1Peak.amplitude;
         double min = Double.MAX_VALUE;
         double mean = 0;
@@ -381,8 +391,13 @@ public class DataUtils {
             std += Math.pow((value - mean), 2);
         }
         rms = Math.sqrt((rms / t1.size()));
-        std = Math.sqrt((std/(t1.size()-1)));
+        //Using population std I guess o3o
+        std = Math.sqrt((std/(t1.size())));
         return new double[] { dst, max, min, std, rms };
+    }
+
+    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak){
+        return calcFeatures(t1, t1Peak, repTimeSeries);
     }
 
     public static boolean accept(DetectedBounds bounds){
@@ -404,8 +419,9 @@ public class DataUtils {
             }
             line = reader.readLine();
             numbers = line.split(",");
-            repTimeSeries = builder.build();
             repPeak = new Peak(Integer.parseInt(numbers[0]), Float.parseFloat(numbers[1]));
+            repTimeSeries = builder.build();
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -429,6 +445,10 @@ public class DataUtils {
             this.index = index;
             this.amplitude = amplitude;
         }
+    }
+
+    public interface Listener {
+        void respondToRep();
     }
 
 }

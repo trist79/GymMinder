@@ -357,4 +357,30 @@ public class DataUtilsTest {
         assertEquals(9, DataUtils.repTimeSeries.size());
     }
 
+    @Test
+    public void testCalcFeatures() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+        TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+        for(int i=0; i<10; i++){
+            builder = builder.add(i, i);
+        }
+        TimeSeries t1 = builder.build();
+        TimeSeries t2 = builder.build();
+        Class[] classes = DataUtils.class.getDeclaredClasses();
+        Class peakClass = null;
+        for(Class c : classes){
+            if(c.getName().equals("edu.temple.gymminder.DataUtils$Peak")){
+                peakClass = c;
+                break;
+            }
+        }
+        Constructor constr = peakClass.getDeclaredConstructors()[0];
+        constr.setAccessible(true);
+        Object originalPeak = constr.newInstance(0, 9f);
+        double[] features = (double[]) DataUtils.class
+                .getMethod("calcFeatures", TimeSeries.class, originalPeak.getClass(), TimeSeries.class)
+                .invoke(null, t1, originalPeak, t2);
+        double[] expected = { 0, 9, 0, 2.87228, 5.33853};
+        assertArrayEquals(expected, features, .001);
+    }
+
 }

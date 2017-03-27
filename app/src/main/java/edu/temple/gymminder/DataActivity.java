@@ -8,13 +8,14 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 
 import java.util.ArrayList;
 
 /**
  * Created by rober_000 on 2/7/2017.
  */
-public class DataActivity extends Activity {
+public class DataActivity extends Activity implements DataUtils.Listener {
 
     public final static String EXTRA_REPS_DONE = "We smoked the last one an hour ago";
     public final static String EXTRA_MAX_VELOCITY = "Cathy I'm lost";
@@ -22,10 +23,12 @@ public class DataActivity extends Activity {
 
     private ArrayList<ArrayList<Float>> data = new ArrayList<>(4);
     private ArrayList<Long> timestamps = new ArrayList<>();
+    private Vibrator vibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         for(int i=0;i<3;i++) data.add(new ArrayList<Float>());
         result(4, 5, 6);
     }
@@ -38,12 +41,6 @@ public class DataActivity extends Activity {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 DataUtils.process(event.values, event.timestamp);
-                //Get values, ignore low value movement
-//                float x = Math.abs(event.values[0]) > 0.09 ? event.values[0] : 0;
-//                float y = Math.abs(event.values[1]) > 0.09 ? event.values[1] : 0;
-//                float z = Math.abs(event.values[2]) > 0.09 ? event.values[2] : 0;
-//                timestamps.add(event.timestamp);
-//                DataUtils.addUnfiltered(x, y, z);
             }
 
             @Override
@@ -73,6 +70,14 @@ public class DataActivity extends Activity {
         finish();
     }
 
+    @Override
+    public void onDestroy(){
+        //Prevent memory leak
+        DataUtils.removeListener();
+    }
 
-
+    @Override
+    public void respondToRep() {
+        vibrator.vibrate(100);
+    }
 }
