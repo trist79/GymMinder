@@ -5,16 +5,29 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -31,11 +44,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float mAccelX = 0, mAccelY = 0, mAccelZ = 0, mRotX = 0, mRotY = 0, mRotZ = 0;
     private String accelXResult = "", accelYResult = "", accelZResult = "", rotXResult = "", rotYResult = "", rotZResult = "";
 
+    StorageReference storage;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        storage = FirebaseStorage.getInstance().getReference();
         accelX = (TextView) findViewById(R.id.accelX);
         accelY = (TextView) findViewById(R.id.accelY);
         accelZ = (TextView) findViewById(R.id.accelZ);
@@ -134,12 +150,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             FileOutputStream rotOut = new FileOutputStream(rotFile);
             accelOut.write(accelResult.getBytes());
             rotOut.write(rotResult.getBytes());
+            rotOut.close();
+            accelOut.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
         Log.d("LA_Sensor", accelResult);
         Log.d("RV_Sensor", rotResult);
-
+        String s = ""+Calendar.getInstance().get(Calendar.MILLISECOND);
+        storage.child("repetition_time_series"+s+".csv").putFile(Uri.fromFile(accelFile)
+        ).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Toast.makeText(getApplicationContext(), "Upload Success", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "Error: " + e.toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
         sensorManager.unregisterListener(this);
     }
 
