@@ -73,8 +73,8 @@ public class DataUtils {
         listener = l;
     }
 
+    //Need this to prevent possible memory leak
     static void removeListener(){
-        //Need this to prevent possible memory leak
         listener = null;
     }
 
@@ -239,10 +239,71 @@ public class DataUtils {
 
     }
 
+    private static Peak detectPeak(Object... args){
+        if(args.length == 0){
+            return detectPeakQRSMethod();
+        } else {
+            return movingZScorePeakDetection(5, 10, 5, (Integer) args[0]);
+        }
+    }
 
-    private static Peak detectPeak() {
+    private static Peak detectPeakQRSMethod() {
         //TODO: Implement selection of peak candidates: https://www.ncbi.nlm.nih.gov/pubmed/18269982
         return null;
+    }
+
+    /**
+     *
+     * @param lag       The amount of data points to use to calculate std and mean
+     * @param window    The total number of data points we want to check
+     * @param z         The z-score threshold for detection
+     * @param start     The beginning of the detection window
+     * @return          A new peak representing the max peak in the data set, or null if none
+     */
+    public static Peak movingZScorePeakDetection(int lag, int window, double z, int start){
+        //Implementation of: http://stackoverflow.com/q/22583391/
+        //'influence' is 0
+        //For now we only detect the peak within the lag
+        if(processedData.get(0).size() < lag) return null;
+        start -= window;
+        start = start >= 0 ? start : 0;
+        //Calculate std and mean for first lag samples
+        double mean = 0;
+        for(int i=start;i<start+lag;i++){
+            mean += processedData.get(0).get(i);
+        }
+        mean /= lag;
+        double std = 0;
+        for(int i=start;i<start+lag;i++){
+            std += Math.pow(processedData.get(0).get(i) - mean, 2 );
+        }
+        std /= lag;
+
+        //Begin search
+        double max = 0;
+        int index = -1;
+        for(int i=start+lag; i<processedData.get(0).size(); i++){
+            if(((processedData.get(0).get(i) - mean) / std) > z){
+                index = processedData.get(0).get(i) > max ? i : index;
+                max = processedData.get(0).get(i) > max ? processedData.get(0).get(i) : max;
+            } else if(index > 0){
+                //If we have an index but the new data point is not in a peak, we exit
+                break;
+            } else {
+                //Only recalculate mean and std if we are not in a peak
+                mean -= (processedData.get(0).get(i - lag) / lag);
+                mean += (processedData.get(0).get(i) / lag);
+                std = 0;
+                for(int j = i - lag + 1; j<=i; j++){
+                    std += Math.pow(processedData.get(0).get(j), 2);
+                }
+                std /= lag;
+            }
+        }
+        if(index == -1){
+            return null;
+        }
+        return new Peak(index, (float) max);
     }
 
     /**
@@ -351,7 +412,6 @@ public class DataUtils {
     }
 
     /**
-     *
      * @param t1        acceleration stream
      * @param t1Peak    peak candidate for acceleration stream
      * @return          DetectedBounds representing bounds of candidate for repetition
@@ -371,6 +431,13 @@ public class DataUtils {
         return new DetectedBounds(s, e, f[0], f[1], f[2], f[3], f[4]);
     }
 
+    /**
+     *
+     * @param t1        TimeSeries for which to calculate features
+     * @param t1Peak    Peak of repetition
+     * @param t2        Repetition pattern TimeSeries for which to calculate distance from
+     * @return          feature values { distance, max, min, standard deviation, root mean square }
+     */
     public static double[] calcFeatures(TimeSeries t1, Peak t1Peak, TimeSeries t2){
         //TODO maybe find a way to get dst faster
         double dst = FastDTW.compare(t1, t2, Distances.EUCLIDEAN_DISTANCE).getDistance();

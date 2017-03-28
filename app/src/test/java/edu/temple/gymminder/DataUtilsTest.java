@@ -13,12 +13,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -180,15 +177,8 @@ public class DataUtilsTest {
     }
 
     @Test
-    public void testSuccsesfulRemovalOfPeaks() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Class[] classes = DataUtils.class.getDeclaredClasses();
-        Class peakClass = null;
-        for(Class c : classes){
-            if(c.getName().equals("edu.temple.gymminder.DataUtils$Peak")){
-                peakClass = c;
-                break;
-            }
-        }
+    public void testSuccsesfulRemovalOfPeaks() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchFieldException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
         Constructor constr = peakClass.getDeclaredConstructors()[0];
         constr.setAccessible(true);
         Object originalPeak = constr.newInstance(0, 10f);
@@ -205,15 +195,8 @@ public class DataUtilsTest {
     }
 
     @Test
-    public void testNonRemovalOfValidPeaks() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
-        Class[] classes = DataUtils.class.getDeclaredClasses();
-        Class peakClass = null;
-        for(Class c : classes){
-            if(c.getName().equals("edu.temple.gymminder.DataUtils$Peak")){
-                peakClass = c;
-                break;
-            }
-        }
+    public void testNonRemovalOfValidPeaks() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException, NoSuchFieldException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
         Constructor constr = peakClass.getDeclaredConstructors()[0];
         constr.setAccessible(true);
         Object originalPeak = constr.newInstance(0, 10f);
@@ -230,15 +213,8 @@ public class DataUtilsTest {
     }
 
     @Test
-    public void testAccept() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
-        Class[] classes = DataUtils.class.getDeclaredClasses();
-        Class boundsClass = null;
-        for(Class c : classes){
-            if(c.getName().equals("edu.temple.gymminder.DataUtils$DetectedBounds")){
-                boundsClass = c;
-                break;
-            }
-        }
+    public void testAccept() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException, NoSuchFieldException {
+        Class boundsClass = getAccessibleDataUtilsClass("DetectedBounds");
         Constructor constr = boundsClass.getDeclaredConstructors()[0];
         constr.setAccessible(true);
         //TODO: change constructor call when coefficients are found
@@ -358,21 +334,14 @@ public class DataUtilsTest {
     }
 
     @Test
-    public void testCalcFeatures() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+    public void testCalcFeatures() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException, NoSuchFieldException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
         for(int i=0; i<10; i++){
             builder = builder.add(i, i);
         }
         TimeSeries t1 = builder.build();
         TimeSeries t2 = builder.build();
-        Class[] classes = DataUtils.class.getDeclaredClasses();
-        Class peakClass = null;
-        for(Class c : classes){
-            if(c.getName().equals("edu.temple.gymminder.DataUtils$Peak")){
-                peakClass = c;
-                break;
-            }
-        }
         Constructor constr = peakClass.getDeclaredConstructors()[0];
         constr.setAccessible(true);
         Object originalPeak = constr.newInstance(0, 9f);
@@ -381,6 +350,73 @@ public class DataUtilsTest {
                 .invoke(null, t1, originalPeak, t2);
         double[] expected = { 0, 9, 0, 2.87228, 5.33853};
         assertArrayEquals(expected, features, .001);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionReturnsOnlyPeakValue() throws NoSuchFieldException, IllegalAccessException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        processed.get(0).add(7f);
+        Object o = DataUtils.movingZScorePeakDetection(5, 20, 5, 0);
+        float amp = (float) peakClass.getDeclaredField("amplitude").get(o);
+        int index = (int) peakClass.getDeclaredField("index").get(o);
+        assertEquals(amp, 7, 0.0001);
+        assertEquals(index, 50);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionReturnsFinalPeakValue() throws NoSuchFieldException, IllegalAccessException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        processed.get(0).add(7f);
+        processed.get(0).add(8f);
+        Object o = DataUtils.movingZScorePeakDetection(5, 20, 5, 0);
+        float amp = (float) peakClass.getDeclaredField("amplitude").get(o);
+        int index = (int) peakClass.getDeclaredField("index").get(o);
+        assertEquals(amp, 8, 0.0001);
+        assertEquals(index, 51);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionDoesNotReturnFinalMaxValueOutsideOfPeak() throws NoSuchFieldException, IllegalAccessException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        processed.get(0).add(7f);
+        processed.get(0).add(1f);
+        processed.get(0).add(8f);
+        Object o = DataUtils.movingZScorePeakDetection(5, 20, 5, 0);
+        float amp = (float) peakClass.getDeclaredField("amplitude").get(o);
+        int index = (int) peakClass.getDeclaredField("index").get(o);
+        assertEquals(amp, 7, 0.0001);
+        assertEquals(index, 50);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionReturnsNullWithNoPeakValues() throws NoSuchFieldException, IllegalAccessException {
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        Object o = DataUtils.movingZScorePeakDetection(5, 20, 5, 0);
+        assertNull(o);
+    }
+
+    public Class getAccessibleDataUtilsClass(String className) throws NoSuchFieldException {
+        Class[] classes = DataUtils.class.getDeclaredClasses();
+        Class peakClass = null;
+        for (Class c : classes) {
+            if (c.getName().equals("edu.temple.gymminder.DataUtils$" + className)) {
+                peakClass = c;
+                break;
+            }
+        }
+        switch(className){
+            case "Peak":
+                peakClass.getDeclaredField("amplitude").setAccessible(true);
+                peakClass.getDeclaredField("index").setAccessible(true);
+                break;
+            case "DetectedBounds":
+                //Don't need any fields for now o3o
+                break;
+        }
+        return peakClass;
     }
 
 }

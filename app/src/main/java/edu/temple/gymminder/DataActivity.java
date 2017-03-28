@@ -37,6 +37,7 @@ public class DataActivity extends Activity implements DataUtils.Listener {
         SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         DataUtils.init(data, timestamps);
+        DataUtils.setListener(this);
         sm.registerListener(new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
