@@ -199,7 +199,7 @@ public class DataUtils {
                 applySGFilterRealtime(j, data.get(i), processedData.get(i));
             }
             avgNode = null;
-            Peak newPeak = detectPeak();
+            Peak newPeak = detectPeak(size);
             //TODO: Probably want to put this in a thread that enqueues new peaks to check
             if (newPeak != null) {
                     /*
@@ -239,11 +239,11 @@ public class DataUtils {
 
     }
 
-    private static Peak detectPeak(Object... args){
+    private static Peak detectPeak(int index, Object... args){
         if(args.length == 0){
             return detectPeakQRSMethod();
         } else {
-            return movingZScorePeakDetection(5, 10, 5, (Integer) args[0]);
+            return movingZScorePeakDetection(5, 10, 5, (int) (index -(repTimeSeries.size() * EXPANSION_VALUE)));
         }
     }
 

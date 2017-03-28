@@ -392,10 +392,65 @@ public class DataUtilsTest {
     }
 
     @Test
-    public void testMovingZScorePeakDetectionReturnsNullWithNoPeakValues() throws NoSuchFieldException, IllegalAccessException {
+    public void testMovingZScorePeakDetectionReturnsNullWithNoPeakValues()  {
         for(int i=0; i<50; i++) processed.get(0).add(1f);
         Object o = DataUtils.movingZScorePeakDetection(5, 20, 5, 0);
         assertNull(o);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionDoesNotReturnPeakWithGradualIncrease(){
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        Object o = DataUtils.movingZScorePeakDetection(5, 20, 5, 0);
+        assertNull(o);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionDoesNotUpdateZAfterFoundPeak() throws NoSuchFieldException, IllegalAccessException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        for(int i=0; i<50; i++) processed.get(0).add(50f);
+        processed.get(0).add(51f);
+        Object o = DataUtils.movingZScorePeakDetection(5, 20, 5, 0);
+
+        float amp = (float) peakClass.getDeclaredField("amplitude").get(o);
+        int index = (int) peakClass.getDeclaredField("index").get(o);
+        assertEquals(51, amp, 0.0001);
+        assertEquals(100, index);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionWorksWithNoiseValues() throws NoSuchFieldException, IllegalAccessException {
+        Class peakClass = getAccessibleDataUtilsClass("Peak");
+        for(int i=0; i<50; i++) processed.get(0).add((float) Math.random());
+        for(int i=0; i<50; i++) processed.get(0).add(50f);
+        processed.get(0).add(51f);
+        Object o = DataUtils.movingZScorePeakDetection(5, 20, 50, 0);
+
+        float amp = (float) peakClass.getDeclaredField("amplitude").get(o);
+        int index = (int) peakClass.getDeclaredField("index").get(o);
+        assertEquals(51, amp, 0.0001);
+        assertEquals(100, index);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionReturnsNullWithPeakBeforeStart() {
+        int lag=5, window=20, start=50;
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        processed.get(0).add(50f);
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        Object o = DataUtils.movingZScorePeakDetection(lag, window, 10, start+window-lag+1);
+        assertNull(o);
+    }
+
+    @Test
+    public void testMovingZScorePeakDetectionReturnsObjectWithPeakAtStartOfStart(){
+        int lag=5, window=20, start=50;
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        processed.get(0).add(50f);
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        Object o = DataUtils.movingZScorePeakDetection(lag, window, 10, start+window-lag);
+        assertNotNull(o);
     }
 
     public Class getAccessibleDataUtilsClass(String className) throws NoSuchFieldException {
