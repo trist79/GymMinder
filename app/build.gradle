@@ -33,6 +33,7 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:9.6.0'
     compile 'com.android.support:design:24.2.1'
     compile 'com.github.davidmoten:fastdtw:0.1'
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:2.0.57-beta'
 }
