@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "520920213366",
+    "firebase_url": "https://gym-minder.firebaseio.com",
+    "project_id": "gym-minder",
+    "storage_bucket": "gym-minder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:520920213366:android:6fe8da5f008e7b5c",
+        "android_client_info": {
+          "package_name": "edu.temple.gymminder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "520920213366-7dv0mtkquj6etr93p9eoljm1cnu2bng7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACPOHbptULFnh60lJ5bSM0pcka4Y2KMYQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
