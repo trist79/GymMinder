@@ -68,7 +68,7 @@ public class SigninFragment extends Fragment {
                                     Log.d("Auth", "Oh Yes");
                                     listener.goToMain();
                                 } else {
-                                    Log.d("Auth", "Oh no");
+                                    Log.d("Auth", task.getException().getLocalizedMessage());
                                 }
                             }
                         });
