@@ -49,7 +49,7 @@ public class WorkoutCreatorFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v =  inflater.inflate(R.layout.fragment_workout_creator, container, false);
+        View v = inflater.inflate(R.layout.fragment_workout_creator, container, false);
         listAdapter = new BaseAdapter() {
             @Override
             public int getCount() {
@@ -117,9 +117,9 @@ public class WorkoutCreatorFragment extends Fragment {
                 });
 
                 final Exercise exercise = (Exercise) getItem(position);
-                if(!exercise.workout.equals(PLACEHOLDER_STRING)){
-                    for(int i=0; i<exerciseNames.length;i++){
-                        if(exercise.workout.equals(exerciseNames[i])){
+                if (!exercise.workout.equals(PLACEHOLDER_STRING)) {
+                    for (int i = 0; i < exerciseNames.length; i++) {
+                        if (exercise.workout.equals(exerciseNames[i])) {
                             spinner.setSelection(i);
                             break;
                         }
@@ -141,7 +141,7 @@ public class WorkoutCreatorFragment extends Fragment {
                     public void afterTextChanged(Editable editable) {
                         try {
                             exercise.sets = Integer.parseInt(editable.toString());
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             //TODO error checking
                         }
                     }
@@ -162,15 +162,15 @@ public class WorkoutCreatorFragment extends Fragment {
                     public void afterTextChanged(Editable editable) {
                         try {
                             exercise.reps = Integer.parseInt(editable.toString());
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             //TODO error checking
                         }
                     }
                 });
-                if(exercise.sets != -999){
+                if (exercise.sets != -999) {
                     editTextSets.setText(String.valueOf(exercise.sets));
                 }
-                if(exercise.reps != -999){
+                if (exercise.reps != -999) {
                     ((EditText) ll.findViewById(R.id.repsEditText)).setText(String.valueOf(exercise.reps));
                 }
                 return ll;
@@ -200,13 +200,13 @@ public class WorkoutCreatorFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context c){
+    public void onAttach(Context c) {
         super.onAttach(c);
         exerciseNames = getResources().getStringArray(R.array.supported_exercises);
         listener = (Listener) c;
     }
 
-    public interface Listener{
+    public interface Listener {
         void finishFragment(Fragment f);
     }
 

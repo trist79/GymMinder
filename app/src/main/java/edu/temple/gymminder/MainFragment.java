@@ -56,8 +56,8 @@ public class MainFragment extends Fragment implements DatabaseListener {
     @Override
     public void respondToWorkouts(final ArrayList<Workout> workouts, final ArrayList<String> names) {
         String res = "";
-        for(String name : names){
-            res+=name+"\n";
+        for (String name : names) {
+            res += name + "\n";
         }
         ((TextView) getView().findViewById(R.id.workouts)).setText(res);
         ListView lv = (ListView) getView().findViewById(R.id.workoutsList);
@@ -95,7 +95,7 @@ public class MainFragment extends Fragment implements DatabaseListener {
     }
 
     @Override
-    public void onAttach(Context c){
+    public void onAttach(Context c) {
         super.onAttach(c);
         listener = (DetailListener) c;
     }

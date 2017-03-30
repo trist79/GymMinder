@@ -1,7 +1,5 @@
 package edu.temple.gymminder;
 
-import android.hardware.SensorEvent;
-
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
 import com.fastdtw.dtw.WarpPath;
@@ -69,12 +67,12 @@ public class DataUtils {
         }
     }
 
-    static void setListener(Listener l){
+    static void setListener(Listener l) {
         listener = l;
     }
 
     //Need this to prevent possible memory leak
-    static void removeListener(){
+    static void removeListener() {
         listener = null;
     }
 
@@ -168,7 +166,7 @@ public class DataUtils {
 
         float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
         //First time adding a node, just add it lel
-        if(timestamps.size()==0){
+        if (timestamps.size() == 0) {
             timestamps.add(timestamp);
             data.get(i).add(x);
             processedData.get(i).add(x);
@@ -187,10 +185,10 @@ public class DataUtils {
             if ((duration + ERROR) > PERIOD) x = interpolate(x, duration, i);
             //We can approximate timestamp value by adding .1s to previous value
             //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
-            timestamps.add(timestamps.get(timestamps.size()-1)+ (long)(SECOND*PERIOD));
+            timestamps.add(timestamps.get(timestamps.size() - 1) + (long) (SECOND * PERIOD));
             data.get(i).add(x);
             int size = processedData.get(i).size();
-            for (int j = size; j >= size - (SG_FILTER.length/2-1) && j > 0; j--) {
+            for (int j = size; j >= size - (SG_FILTER.length / 2 - 1) && j > 0; j--) {
                 /*
                     We want to re-process any data points that didn't have enough data to the right
                     for the entire filter to run on. The alternative to this is to delay the signal
@@ -217,7 +215,8 @@ public class DataUtils {
                         current index to detect if any peaks are ready to be examined
                      */
                 TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
-                for(int j=0; j<processedData.get(i).size(); j++) builder = builder.add(j, processedData.get(i).get(j));
+                for (int j = 0; j < processedData.get(i).size(); j++)
+                    builder = builder.add(j, processedData.get(i).get(j));
                 TimeSeries t1 = builder.build();
                 DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.size()));
 
@@ -227,7 +226,7 @@ public class DataUtils {
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
-                    if(listener!=null) listener.respondToRep();
+                    if (listener != null) listener.respondToRep();
                     for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + bounds.e); j++) {
                         if (peaks.containsKey(j)) peaks.remove(j);
                     }
@@ -239,11 +238,11 @@ public class DataUtils {
 
     }
 
-    private static Peak detectPeak(int index, Object... args){
-        if(args.length == 0){
+    private static Peak detectPeak(int index, Object... args) {
+        if (args.length == 0) {
             return detectPeakQRSMethod();
         } else {
-            return movingZScorePeakDetection(5, 10, 5, (int) (index -(repTimeSeries.size() * EXPANSION_VALUE)));
+            return movingZScorePeakDetection(5, 10, 5, (int) (index - (repTimeSeries.size() * EXPANSION_VALUE)));
         }
     }
 
@@ -253,40 +252,39 @@ public class DataUtils {
     }
 
     /**
-     *
-     * @param lag       The amount of data points to use to calculate std and mean
-     * @param window    The total number of data points we want to check
-     * @param z         The z-score threshold for detection
-     * @param start     The beginning of the detection window
-     * @return          A new peak representing the max peak in the data set, or null if none
+     * @param lag    The amount of data points to use to calculate std and mean
+     * @param window The total number of data points we want to check
+     * @param z      The z-score threshold for detection
+     * @param start  The beginning of the detection window
+     * @return A new peak representing the max peak in the data set, or null if none
      */
-    public static Peak movingZScorePeakDetection(int lag, int window, double z, int start){
+    public static Peak movingZScorePeakDetection(int lag, int window, double z, int start) {
         //Implementation of: http://stackoverflow.com/q/22583391/
         //'influence' is 0
         //For now we only detect the peak within the lag
-        if(processedData.get(0).size() < lag) return null;
+        if (processedData.get(0).size() < lag) return null;
         start -= window;
         start = start >= 0 ? start : 0;
         //Calculate std and mean for first lag samples
         double mean = 0;
-        for(int i=start;i<start+lag;i++){
+        for (int i = start; i < start + lag; i++) {
             mean += processedData.get(0).get(i);
         }
         mean /= lag;
         double std = 0;
-        for(int i=start;i<start+lag;i++){
-            std += Math.pow(processedData.get(0).get(i) - mean, 2 );
+        for (int i = start; i < start + lag; i++) {
+            std += Math.pow(processedData.get(0).get(i) - mean, 2);
         }
         std /= lag;
 
         //Begin search
         double max = 0;
         int index = -1;
-        for(int i=start+lag; i<processedData.get(0).size(); i++){
-            if(((processedData.get(0).get(i) - mean) / std) > z){
+        for (int i = start + lag; i < processedData.get(0).size(); i++) {
+            if (((processedData.get(0).get(i) - mean) / std) > z) {
                 index = processedData.get(0).get(i) > max ? i : index;
                 max = processedData.get(0).get(i) > max ? processedData.get(0).get(i) : max;
-            } else if(index > 0){
+            } else if (index > 0) {
                 //If we have an index but the new data point is not in a peak, we exit
                 break;
             } else {
@@ -294,34 +292,32 @@ public class DataUtils {
                 mean -= (processedData.get(0).get(i - lag) / lag);
                 mean += (processedData.get(0).get(i) / lag);
                 std = 0;
-                for(int j = i - lag + 1; j<=i; j++){
+                for (int j = i - lag + 1; j <= i; j++) {
                     std += Math.pow(processedData.get(0).get(j), 2);
                 }
                 std /= lag;
             }
         }
-        if(index == -1){
+        if (index == -1) {
             return null;
         }
         return new Peak(index, (float) max);
     }
 
     /**
-     *
-     * @param x data value to be interpolated
+     * @param x        data value to be interpolated
      * @param duration duration > PERIOD since last added node
-     * @param i index of data array being used for interpolation
+     * @param i        index of data array being used for interpolation
      * @return interpolated data value
      */
-    static float interpolate(float x, float duration, int i){
+    static float interpolate(float x, float duration, int i) {
         float old = data.get(i).get(data.get(i).size() - 1);
         return old + (PERIOD) * (x - old) / (duration);
     }
 
     /**
-     *
-     * @param avgNode node to be modified
-     * @param newValue new value to be added to average
+     * @param avgNode     node to be modified
+     * @param newValue    new value to be added to average
      * @param newDuration new duration to be added to average
      * @return the modified avgNode
      */
@@ -367,56 +363,56 @@ public class DataUtils {
                 sum += SG_FILTER[i] * data.get(i + index - SG_FILTER.length / 2);
             }
         }
-        if(index == processedData.size())   processedData.add(index, sum / FILTER_SUM);
-        else                                processedData.set(index, sum / FILTER_SUM);
+        if (index == processedData.size()) processedData.add(index, sum / FILTER_SUM);
+        else processedData.set(index, sum / FILTER_SUM);
     }
 
-    public static ArrayList<Peak> reducePeaks(ArrayList<Peak> peaks, Peak originalPeak){
+    public static ArrayList<Peak> reducePeaks(ArrayList<Peak> peaks, Peak originalPeak) {
         ArrayList<Peak> result = new ArrayList<>();
-        for(Peak p : peaks){
-            if(p.amplitude >= ( Math.pow(PEAK_SIMILARITY_FACTOR, -1) * originalPeak.amplitude )){
+        for (Peak p : peaks) {
+            if (p.amplitude >= (Math.pow(PEAK_SIMILARITY_FACTOR, -1) * originalPeak.amplitude)) {
                 result.add(p);
             }
         }
         return result;
     }
 
-    public static TimeSeries subSeries(TimeSeries series, int start, int end){
+    public static TimeSeries subSeries(TimeSeries series, int start, int end) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
-        for(int i = start; i<end; i++){
+        for (int i = start; i < end; i++) {
             builder.add(series.getTimeAtNthPoint(i), series.getMeasurement(i, 0));
         }
         return builder.build();
     }
 
-    public static int getLastMatchingIndexOfFirst(WarpPath path){
+    public static int getLastMatchingIndexOfFirst(WarpPath path) {
         ColMajorCell cell = path.get(0);
         int startIndexI = cell.getRow(); //This might need to be cell.getCol()
         int i;
-        for(i=1; startIndexI == cell.getRow() && i<path.size(); i++){
+        for (i = 1; startIndexI == cell.getRow() && i < path.size(); i++) {
             cell = path.get(i);
         }
         //Subtract 2 because the index is not valid, and then i++ was called again
-        return path.get(i-2).getCol(); //If cell.getRow() changes, so does this
+        return path.get(i - 2).getCol(); //If cell.getRow() changes, so does this
     }
 
-    public static int getFirstMatchingIndexOfLast(WarpPath path){
-        ColMajorCell cell = path.get(path.size()-1);
+    public static int getFirstMatchingIndexOfLast(WarpPath path) {
+        ColMajorCell cell = path.get(path.size() - 1);
         int endIndexI = cell.getRow(); //ditto comments above
         int i;
-        for(i=path.size()-2; endIndexI == cell.getRow() && i>=0; i--){
+        for (i = path.size() - 2; endIndexI == cell.getRow() && i >= 0; i--) {
             cell = path.get(i);
         }
         //Work backwards this time so add the two back
-        return path.get(i+2).getCol();
+        return path.get(i + 2).getCol();
     }
 
     /**
-     * @param t1        acceleration stream
-     * @param t1Peak    peak candidate for acceleration stream
-     * @return          DetectedBounds representing bounds of candidate for repetition
+     * @param t1     acceleration stream
+     * @param t1Peak peak candidate for acceleration stream
+     * @return DetectedBounds representing bounds of candidate for repetition
      */
-    public static DetectedBounds detectBounds(TimeSeries t1, Peak t1Peak){
+    public static DetectedBounds detectBounds(TimeSeries t1, Peak t1Peak) {
         int s = (int) (t1Peak.index - EXPANSION_VALUE * repPeak.index);
         int e = (int) (t1Peak.index + EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
         t1 = subSeries(t1, s, e);
@@ -432,13 +428,12 @@ public class DataUtils {
     }
 
     /**
-     *
-     * @param t1        TimeSeries for which to calculate features
-     * @param t1Peak    Peak of repetition
-     * @param t2        Repetition pattern TimeSeries for which to calculate distance from
-     * @return          feature values { distance, max, min, standard deviation, root mean square }
+     * @param t1     TimeSeries for which to calculate features
+     * @param t1Peak Peak of repetition
+     * @param t2     Repetition pattern TimeSeries for which to calculate distance from
+     * @return feature values { distance, max, min, standard deviation, root mean square }
      */
-    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak, TimeSeries t2){
+    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak, TimeSeries t2) {
         //TODO maybe find a way to get dst faster
         double dst = FastDTW.compare(t1, t2, Distances.EUCLIDEAN_DISTANCE).getDistance();
         double max = t1Peak.amplitude;
@@ -446,42 +441,42 @@ public class DataUtils {
         double mean = 0;
         double std = 0;
         double rms = 0;
-        for(int i=0; i<t1.size(); i++){
+        for (int i = 0; i < t1.size(); i++) {
             double value = t1.getMeasurement(i, 0);
             min = min < value ? min : value;
             mean += value;
-            rms += value*value;
+            rms += value * value;
         }
         mean /= t1.size();
-        for(int i=0; i<t1.size(); i++){
+        for (int i = 0; i < t1.size(); i++) {
             double value = t1.getMeasurement(i, 0);
             std += Math.pow((value - mean), 2);
         }
         rms = Math.sqrt((rms / t1.size()));
         //Using population std I guess o3o
-        std = Math.sqrt((std/(t1.size())));
-        return new double[] { dst, max, min, std, rms };
+        std = Math.sqrt((std / (t1.size())));
+        return new double[]{dst, max, min, std, rms};
     }
 
-    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak){
+    public static double[] calcFeatures(TimeSeries t1, Peak t1Peak) {
         return calcFeatures(t1, t1Peak, repTimeSeries);
     }
 
-    public static boolean accept(DetectedBounds bounds){
+    public static boolean accept(DetectedBounds bounds) {
         //TODO logistic regression to find coefficients
         final double b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
         double res = b0 + (b1 * bounds.dst) + (b2 * bounds.max) + (b3 * bounds.min) + (b4 * bounds.sd)
                 + (b5 * bounds.rms) + (b6 * bounds.dur);
-        return 1/(1+Math.exp(-1.0*res)) >= .5;
+        return 1 / (1 + Math.exp(-1.0 * res)) >= .5;
     }
 
-    public static void loadRepetitionPatternTimeSeries(BufferedReader reader){
+    public static void loadRepetitionPatternTimeSeries(BufferedReader reader) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
         try {
             String line = reader.readLine();
             String[] numbers = line.split(",");
             int i = 0;
-            for(String s : numbers){
+            for (String s : numbers) {
                 builder = builder.add(i++, Float.parseFloat(s));
             }
             line = reader.readLine();
@@ -498,9 +493,15 @@ public class DataUtils {
         double dst, max, min, sd, rms, dur;
         int s, e;
 
-        public DetectedBounds(int s, int e, double dst, double max, double min, double sd, double rms){
-            this.s = s; this.e = e; this.dst = dst; this.max = max; this.min = min; this.sd = sd;
-            this.rms = rms; this.dur = e - s;
+        public DetectedBounds(int s, int e, double dst, double max, double min, double sd, double rms) {
+            this.s = s;
+            this.e = e;
+            this.dst = dst;
+            this.max = max;
+            this.min = min;
+            this.sd = sd;
+            this.rms = rms;
+            this.dur = e - s;
         }
     }
 
@@ -508,7 +509,7 @@ public class DataUtils {
         float amplitude;
         int index;
 
-        public Peak(int index, float amplitude){
+        public Peak(int index, float amplitude) {
             this.index = index;
             this.amplitude = amplitude;
         }

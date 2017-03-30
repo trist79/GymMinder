@@ -162,13 +162,13 @@ public class DbHelper {
         return cal.get(Calendar.DAY_OF_YEAR) + " " + cal.get(Calendar.YEAR);
     }
 
-    private DatabaseReference parsePath(String[] path, String... strings){
+    private DatabaseReference parsePath(String[] path, String... strings) {
         DatabaseReference reference = database.getRoot();
         System.out.println(reference.toString());
-        for(String s : path){
+        for (String s : path) {
             reference = reference.child(s);
         }
-        for(String s : strings){
+        for (String s : strings) {
             reference = reference.child(s);
         }
         return reference;

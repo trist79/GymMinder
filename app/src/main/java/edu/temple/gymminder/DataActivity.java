@@ -29,11 +29,11 @@ public class DataActivity extends Activity implements DataUtils.Listener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-        for(int i=0;i<3;i++) data.add(new ArrayList<Float>());
+        for (int i = 0; i < 3; i++) data.add(new ArrayList<Float>());
         result(4, 5, 6);
     }
 
-    void setupSensor(){
+    void setupSensor() {
         SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         DataUtils.init(data, timestamps);
@@ -52,7 +52,7 @@ public class DataActivity extends Activity implements DataUtils.Listener {
     }
 
 
-    void result(int reps, int mv, int av){
+    void result(int reps, int mv, int av) {
         Intent intent = new Intent();
         intent.putExtra(EXTRA_REPS_DONE, reps);
         intent.putExtra(EXTRA_MAX_VELOCITY, mv);
@@ -61,7 +61,7 @@ public class DataActivity extends Activity implements DataUtils.Listener {
         finish();
     }
 
-    void result(int reps){
+    void result(int reps) {
         Intent intent = new Intent();
         float[] f = DataUtils.maxAndAvg(DataUtils.riemann(data.get(2)));
         intent.putExtra(EXTRA_REPS_DONE, reps);
@@ -72,7 +72,7 @@ public class DataActivity extends Activity implements DataUtils.Listener {
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         //Prevent memory leak
         DataUtils.removeListener();
     }

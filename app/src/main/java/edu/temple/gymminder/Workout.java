@@ -1,12 +1,7 @@
 package edu.temple.gymminder;
 
-import android.widget.EditText;
-import android.widget.Spinner;
-
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by rober_000 on 1/31/2017.

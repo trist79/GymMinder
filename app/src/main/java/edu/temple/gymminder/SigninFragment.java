@@ -35,7 +35,7 @@ public class SigninFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v =  inflater.inflate(R.layout.fragment_signin, container, false);
+        View v = inflater.inflate(R.layout.fragment_signin, container, false);
         email = (EditText) v.findViewById(R.id.emailField);
         password = (EditText) v.findViewById(R.id.passwordField);
         v.findViewById(R.id.signinButton).setOnClickListener(new View.OnClickListener() {
@@ -46,7 +46,7 @@ public class SigninFragment extends Fragment {
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
-                                if(task.isSuccessful()){
+                                if (task.isSuccessful()) {
                                     Log.d("Auth", "Login complete");
                                     listener.goToMain();
                                 } else {
@@ -78,7 +78,7 @@ public class SigninFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context c){
+    public void onAttach(Context c) {
         super.onAttach(c);
         listener = (SigninListener) c;
     }

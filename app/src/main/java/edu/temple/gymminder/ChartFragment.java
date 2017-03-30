@@ -21,7 +21,7 @@ import java.util.ArrayList;
  */
 public class ChartFragment extends Fragment {
 
-    private static final String DATA_EXTRA = "Testing for compatibility... T";
+    private static final String EXTRA_DATA_STREAM = "Testing for compatibility... T";
 
     ArrayList<Entry> data = new ArrayList<>();
     LineChart chart;
@@ -30,16 +30,24 @@ public class ChartFragment extends Fragment {
         // Required empty public constructor
     }
 
+    public static ChartFragment newInstance(float[] accelerationStream){
+        ChartFragment fragment = new ChartFragment();
+        Bundle args = new Bundle();
+        args.putFloatArray(EXTRA_DATA_STREAM, accelerationStream);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v =  inflater.inflate(R.layout.fragment_chart, container, false);
+        View v = inflater.inflate(R.layout.fragment_chart, container, false);
         float[] args;
-        args = getArguments()== null ? null : getArguments().getFloatArray(DATA_EXTRA);
-        if(args == null) args = new float[] {1,2,3,4,5,6,7,6,5,4,3,5,6,7,8,5,4};
-        for(int i=0;i<args.length;i++) {
+        args = getArguments() == null ? null : getArguments().getFloatArray(EXTRA_DATA_STREAM);
+        if (args == null) args = new float[]{1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 5, 6, 7, 8, 5, 4};
+        for (int i = 0; i < args.length; i++) {
             data.add(new Entry(i, args[i]));
         }
 

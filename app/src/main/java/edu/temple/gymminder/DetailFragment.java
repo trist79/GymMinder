@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +41,7 @@ public class DetailFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static DetailFragment newInstance(Workout workout, String name){
+    public static DetailFragment newInstance(Workout workout, String name) {
         DetailFragment detailFragment = new DetailFragment();
         Bundle args = new Bundle();
         args.putSerializable(WORKOUT_ARG, workout);
@@ -59,7 +58,7 @@ public class DetailFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_detail, container, false);
         Workout workout = (Workout) getArguments().getSerializable(WORKOUT_ARG);
         workoutName = getArguments().getString(NAME_ARG);
-        if(workout == null) return v;
+        if (workout == null) return v;
         ((TextView) v.findViewById(R.id.textView)).setText(
                 workoutName != null ? workoutName : workout.toString());
 
@@ -84,9 +83,9 @@ public class DetailFragment extends Fragment {
             @Override
             public View getView(final int position, View convertView, ViewGroup parent) {
                 //TODO refactor into using Fragments maybe
-                LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 final Exercise exercise = (Exercise) getItem(position);
-                if(exercise.completed==null) exercise.initActive();
+                if (exercise.completed == null) exercise.initActive();
                 View item = inflater.inflate(R.layout.item_exercise, parent, false); //TODO view reuse
                 ((TextView) item.findViewById(R.id.workoutName)).setText(exercise.toString());
                 final TextView setProgress = (TextView) item.findViewById(R.id.setNumber);
@@ -94,7 +93,7 @@ public class DetailFragment extends Fragment {
                 item.findViewById(R.id.startTrackerButton).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if(exercise.setsDone >= exercise.sets) return;
+                        if (exercise.setsDone >= exercise.sets) return;
 
                         setProgress.setText(getString(R.string.sets_progress,
                                 ++exercise.setsDone, exercise.sets));
@@ -111,14 +110,14 @@ public class DetailFragment extends Fragment {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
-        if(requestCode == RESULT_REPS){
-            if(resultCode == Activity.RESULT_OK){
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RESULT_REPS) {
+            if (resultCode == Activity.RESULT_OK) {
                 int repsDone = data.getIntExtra(DataActivity.EXTRA_REPS_DONE, -1);
                 Log.d("OuO", String.valueOf(repsDone));
-                for(int i=0;i<lv.getAdapter().getCount();i++){
+                for (int i = 0; i < lv.getAdapter().getCount(); i++) {
                     Exercise ex = (Exercise) lv.getAdapter().getItem(i);
-                    if(ex.setsDone != ex.sets) return;
+                    if (ex.setsDone != ex.sets) return;
                 }
                 onWorkoutFinished();
             }
@@ -127,7 +126,7 @@ public class DetailFragment extends Fragment {
         }
     }
 
-    public void onWorkoutFinished(){
+    public void onWorkoutFinished() {
         //Add button to let user save workout to database, or maybe just do it automatically
         Button button = new Button(getContext());
         button.setText(R.string.save_workout_text);
@@ -136,7 +135,7 @@ public class DetailFragment extends Fragment {
             public void onClick(View v) {
                 DbHelper dbHelper = new DbHelper(null);
                 ArrayList<Exercise> exercises = new ArrayList<>();
-                for(int i=0; i<lv.getAdapter().getCount();i++){
+                for (int i = 0; i < lv.getAdapter().getCount(); i++) {
                     exercises.add((Exercise) lv.getAdapter().getItem(i));
                 }
                 dbHelper.addWorkout(new Workout(exercises),

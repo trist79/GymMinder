@@ -1,7 +1,6 @@
 package edu.temple.gymminder;
 
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -39,13 +38,13 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    public void setupAuth(){
+    public void setupAuth() {
         auth = FirebaseAuth.getInstance();
         auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-                if(user!=null){
+                if (user != null) {
                     Log.d("Auth", "Signed in");
                 } else {
                     Log.d("Auth", "Not Signed In");
@@ -83,5 +82,12 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
     @Override
     public void finishFragment(Fragment f) {
         getSupportFragmentManager().popBackStack();
+    }
+
+    public void goToChart(float[] accelerationStream) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainFrame, ChartFragment.newInstance(accelerationStream))
+                .addToBackStack(null)
+                .commit();
     }
 }
