@@ -14,6 +14,8 @@ import com.google.firebase.auth.FirebaseUser;
 public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
         MainFragment.DetailListener, WorkoutCreatorFragment.Listener {
 
+    //TODO: Add sign-out button to options
+
     private FirebaseAuth auth;
 
     @Override

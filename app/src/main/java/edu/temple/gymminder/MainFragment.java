@@ -20,7 +20,7 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MainFragment extends Fragment implements DatabaseListener {
+public class MainFragment extends Fragment implements DbHelper.Listener {
 
     FirebaseAuth auth = FirebaseAuth.getInstance();
     DbHelper db = new DbHelper(this);
@@ -37,7 +37,6 @@ public class MainFragment extends Fragment implements DatabaseListener {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_main, container, false);
-        db.retrieveAllWorkouts(auth.getCurrentUser());
         v.findViewById(R.id.add_workout_fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -46,6 +45,12 @@ public class MainFragment extends Fragment implements DatabaseListener {
         });
         ((TextView) v.findViewById(R.id.greeting)).setText(auth.getCurrentUser().getEmail());
         return v;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        db.retrieveAllWorkouts(auth.getCurrentUser());
     }
 
     @Override
@@ -102,7 +107,6 @@ public class MainFragment extends Fragment implements DatabaseListener {
 
     public interface DetailListener {
         void goToDetail(Workout workout, String name);
-
         void goToWorkoutCreator();
     }
 

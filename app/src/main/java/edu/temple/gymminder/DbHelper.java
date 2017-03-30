@@ -25,9 +25,9 @@ public class DbHelper {
      * the data. All data returned is a Workout or a List of Workouts.
      */
     private DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-    private DatabaseListener listener;
+    private Listener listener;
 
-    public DbHelper(DatabaseListener listener) {
+    public DbHelper(Listener listener) {
         this.listener = listener;
     }
 
@@ -112,6 +112,15 @@ public class DbHelper {
         parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName).setValue(workout);
     }
 
+    public void addWorkout(Workout workout, FirebaseUser user, Date date){
+        //Unnamed workout for Workout builder
+        for (int i = 0; i < workout.exercises.size(); i++) {
+            if (workout.exercises.get(i).completed == null) return;
+        }
+        String day = formatDateForWorkout(date);
+        parsePath(WorkoutContract.DATED_UNNAMED_WORKOUTS, user.getUid(), day).setValue(workout);
+    }
+
     /**
      * @param user user for which to retrieve all owned workouts
      */
@@ -174,12 +183,23 @@ public class DbHelper {
         return reference;
     }
 
-
     public static final class WorkoutContract {
-        public static final String[] DATED_WORKOUTS = {"users", "dated"};
-        public static final String[] WORKOUTS = {"users", "stored"};
-        public static final String[] TEST_RETRIEVE = {"users"};
-        public static final String[] TEST_GET_USER = {"users", "1"};
+        private static final String USERS = "users";
+        private static final String DATED = "dated";
+        private static final String STORED = "stored";
+        private static final String UNNAMED = "unnamed";
+        private static final String TEST = "1";
+
+        public static final String[] DATED_WORKOUTS = {USERS, DATED};
+        public static final String[] WORKOUTS = {USERS, STORED};
+        public static final String[] TEST_RETRIEVE = {USERS};
+        public static final String[] TEST_GET_USER = {USERS, TEST};
+        public static final String[] DATED_UNNAMED_WORKOUTS = {USERS, UNNAMED};
+    }
+
+    public interface Listener {
+        void updateUi(Workout workout);
+        void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
     }
 
 }

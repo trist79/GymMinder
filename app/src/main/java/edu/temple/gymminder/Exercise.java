@@ -12,6 +12,7 @@ public class Exercise implements Serializable {
     public int sets;
     public int reps;
     public ArrayList<Integer> completed = null;
+    public ArrayList<Float> accelerationStream = null;
     public int setsDone;
 
     public Exercise() {
@@ -51,6 +52,10 @@ public class Exercise implements Serializable {
 
     public void setReps(int reps) {
         this.reps = reps;
+    }
+
+    public void setStream(ArrayList<Float> accelerationStream){
+        this.accelerationStream = accelerationStream;
     }
 
     public void setWorkout(String workout) {
