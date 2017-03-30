@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private boolean isRecording = false;
     float mAccelX = 0, mAccelY = 0, mAccelZ = 0, mRotX = 0, mRotY = 0, mRotZ = 0;
-    private String accelXResult = "", accelYResult = "", accelZResult = "", rotXResult = "", rotYResult = "", rotZResult = "";
+    private String accelXResult = "", accelYResult = "", accelZResult = "", rotXResult = "", rotYResult = "", rotZResult = "", timestamp = "";
 
     StorageReference storage;
 
@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         accelXResult+=x + ",";
         accelYResult+=y + ",";
         accelZResult+=z + ",";
+        timestamp += event.timestamp + ",";
     }
 
     private void onGyroscopeChanged(SensorEvent event) {
@@ -141,35 +142,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void stopRecording() {
-        String accelResult = accelXResult+"\n"+accelYResult+"\n"+accelZResult;
-        String rotResult = rotXResult+"\n"+rotYResult+"\n"+rotZResult;
-        File accelFile = new File(getFilesDir(), "accel_test.csv");
-        File rotFile = new File(getFilesDir(), "rot_test.csv");
-        try {
-            FileOutputStream accelOut = new FileOutputStream(accelFile);
-            FileOutputStream rotOut = new FileOutputStream(rotFile);
-            accelOut.write(accelResult.getBytes());
-            rotOut.write(rotResult.getBytes());
-            rotOut.close();
-            accelOut.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(accelZResult.length()>0) {
+            String accelResult = accelXResult + "\n" + accelYResult + "\n" + accelZResult + "\n" + timestamp;
+            String rotResult = rotXResult + "\n" + rotYResult + "\n" + rotZResult;
+            File accelFile = new File(getFilesDir(), "accel_test.csv");
+            File rotFile = new File(getFilesDir(), "rot_test.csv");
+            try {
+                FileOutputStream accelOut = new FileOutputStream(accelFile);
+                FileOutputStream rotOut = new FileOutputStream(rotFile);
+                accelOut.write(accelResult.getBytes());
+                rotOut.write(rotResult.getBytes());
+                rotOut.close();
+                accelOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Log.d("LA_Sensor", accelResult);
+            Log.d("RV_Sensor", rotResult);
+            String s = "_";
+            s += Calendar.getInstance().get(Calendar.SECOND) + "_";
+            s += Calendar.getInstance().get(Calendar.MINUTE) + "_";
+            s += Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+            storage.child("repetition_time_series" + s + ".csv").putFile(Uri.fromFile(accelFile)
+            ).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Toast.makeText(getApplicationContext(), "Upload Success", Toast.LENGTH_SHORT).show();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), "Error: " + e.toString(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
-        Log.d("LA_Sensor", accelResult);
-        Log.d("RV_Sensor", rotResult);
-        String s = ""+Calendar.getInstance().get(Calendar.MILLISECOND);
-        storage.child("repetition_time_series"+s+".csv").putFile(Uri.fromFile(accelFile)
-        ).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(getApplicationContext(), "Upload Success", Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(getApplicationContext(), "Error: " + e.toString(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        accelXResult="";accelYResult="";accelZResult="";rotXResult="";rotYResult="";rotZResult="";
+        timestamp="";
         sensorManager.unregisterListener(this);
     }
 
