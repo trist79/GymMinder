@@ -322,7 +322,7 @@ public class DataUtilsTest {
     BufferedReader reader;
 
     @Test
-    public void testLoadRepetitionPatternTimeSeries() throws IOException {
+    public void testLoadRepetitionPatternTimeSeries() throws IOException, NoSuchFieldException, IllegalAccessException {
         when(reader.readLine())
                 .thenReturn("1.4,2,3.6,4,5,6.3,7,8,9")
                 .thenReturn("5,6.3");
@@ -331,6 +331,9 @@ public class DataUtilsTest {
         assertNotNull(DataUtils.repPeak);
         assertNotNull(DataUtils.repTimeSeries);
         assertEquals(9, DataUtils.repTimeSeries.size());
+        Object o = DataUtils.repPeak;
+        assertEquals(5, getAccessibleDataUtilsClass("Peak").getDeclaredField("index").get(o));
+        assertEquals(6.3f, (float) getAccessibleDataUtilsClass("Peak").getDeclaredField("amplitude").get(o), 0.01);
     }
 
     @Test
