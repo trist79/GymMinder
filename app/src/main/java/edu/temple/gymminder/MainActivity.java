@@ -7,6 +7,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -40,6 +43,21 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        if(item.getItemId()==R.id.signOutOption){
+            auth.signOut();
+        }
+        return true;
+    }
+
     public void setupAuth() {
         auth = FirebaseAuth.getInstance();
         auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
@@ -50,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                     Log.d("Auth", "Signed in");
                 } else {
                     Log.d("Auth", "Not Signed In");
+                    getSupportFragmentManager().beginTransaction().replace(R.id.mainFrame,
+                            new SigninFragment()).commit();
                 }
             }
         });
