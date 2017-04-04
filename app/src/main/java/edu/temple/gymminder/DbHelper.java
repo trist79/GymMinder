@@ -125,7 +125,7 @@ public class DbHelper {
      * @param user user for which to retrieve all owned workouts
      */
     public void retrieveAllWorkouts(FirebaseUser user) {
-        parsePath(WorkoutContract.WORKOUTS, user.getUid()).addValueEventListener(new ValueEventListener() {
+        parsePath(WorkoutContract.WORKOUTS, user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
