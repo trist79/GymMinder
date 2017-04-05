@@ -13,7 +13,9 @@ import android.os.Vibrator;
 import java.util.ArrayList;
 
 /**
- * Created by rober_000 on 2/7/2017.
+ * Handles vibration on reps, calling DataUtils methods to handle data, accelerometer recording,
+ * responding to calling component with relevant data such as number of reps, stream stats, the
+ * stream array, etc.
  */
 public class DataActivity extends Activity implements DataUtils.Listener {
 

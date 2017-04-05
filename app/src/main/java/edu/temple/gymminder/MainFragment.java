@@ -18,7 +18,8 @@ import java.util.ArrayList;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Currently handles workout selection, and navigation to workout creator. This is the Fragment shown
+ * after the user has been authenticated.
  */
 public class MainFragment extends Fragment implements DbHelper.Listener {
 

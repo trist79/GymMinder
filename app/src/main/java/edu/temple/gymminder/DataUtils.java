@@ -367,7 +367,16 @@ public class DataUtils {
         else processedData.set(index, sum / FILTER_SUM);
     }
 
+    /**
+     *
+     * @param peaks         List of peaks for which we want to reduce any potential bad peaks
+     * @param originalPeak  Original peak, which we used to calculate minimum amplitude threshold
+     *                      of other peaks
+     * @return A List of peaks that is a subset of the original, with peaks with too small a
+     * amplitude removed.
+     */
     public static ArrayList<Peak> reducePeaks(ArrayList<Peak> peaks, Peak originalPeak) {
+        //TODO: actually call this when detecting peaks
         ArrayList<Peak> result = new ArrayList<>();
         for (Peak p : peaks) {
             if (p.amplitude >= (Math.pow(PEAK_SIMILARITY_FACTOR, -1) * originalPeak.amplitude)) {
@@ -377,6 +386,13 @@ public class DataUtils {
         return result;
     }
 
+    /**
+     *
+     * @param series    TimeSeries for which we want to return a subseries
+     * @param start     The index at which we want our subseries to begin (inclusive)
+     * @param end       The index at which we want our subseries to end (exclusive)
+     * @return          A TimeSeries object representing a subsection of series
+     */
     public static TimeSeries subSeries(TimeSeries series, int start, int end) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
         for (int i = start; i < end; i++) {
@@ -385,6 +401,13 @@ public class DataUtils {
         return builder.build();
     }
 
+    /**
+     * This and getFirstMatchingIndexOfLast are used to calculate the bounds of the repetition. This
+     * method in is used to calculate the beginning of the rep.
+     * @param path path representing the DTW path between two TimeSeries.
+     * @return The last of our acceleration stream corresponding to the first index of our
+     * reference TimeSeries.
+     */
     public static int getLastMatchingIndexOfFirst(WarpPath path) {
         ColMajorCell cell = path.get(0);
         int startIndexI = cell.getRow(); //This might need to be cell.getCol()
@@ -396,6 +419,14 @@ public class DataUtils {
         return path.get(i - 2).getCol(); //If cell.getRow() changes, so does this
     }
 
+
+    /**
+     * This and getFirstMatchingIndexOfLast are used to calculate the bounds of the repetition. This
+     * method in is used to calculate the end of the rep.
+     * @param path path representing the DTW path between two TimeSeries.
+     * @return The first of our acceleration stream corresponding to the last index of our
+     * reference TimeSeries.
+     */
     public static int getFirstMatchingIndexOfLast(WarpPath path) {
         ColMajorCell cell = path.get(path.size() - 1);
         int endIndexI = cell.getRow(); //ditto comments above
@@ -462,6 +493,12 @@ public class DataUtils {
         return calcFeatures(t1, t1Peak, repTimeSeries);
     }
 
+    /**
+     *
+     * @param bounds DetectedBounds representing a detected repetition for which we want to determine
+     *               if it is a valid rep.
+     * @return  True, if the result of logistic regression determines this is a valid rep, else false.
+     */
     public static boolean accept(DetectedBounds bounds) {
         //TODO logistic regression to find coefficients
         final double b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
@@ -470,6 +507,13 @@ public class DataUtils {
         return 1 / (1 + Math.exp(-1.0 * res)) >= .5;
     }
 
+    /**
+     * Loads repPeak and repTimeSeries for this class from a reader containing two lines of data.
+     * The first of which contains comma-separated values representing amplitudes at a consistent
+     * time distance apart. The second line contains Peak information containing the index of the
+     * peak in the stream, and the amplitude of the peak.
+     * @param reader    reader from which to read the TimeSeries and Peak data.
+     */
     public static void loadRepetitionPatternTimeSeries(BufferedReader reader) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
         try {
@@ -489,6 +533,17 @@ public class DataUtils {
         }
     }
 
+    /**
+     * Class representing a detected repetitions bounds and stats about the detected rep.
+     * dst - DTW distance to the repetition pattern time series
+     * max - maximal value of amplitude the stream takes on (also the Peak amplitude)
+     * min - minimal value of amplitude the stream takes on
+     * sd  - standard deviation of the repetition amplitude values
+     * rms - root mean square of the repetition amplitude values
+     * s   - start time of the repetition
+     * e   - end time of the repetition
+     * dur - duration of the repetition, calculated as e - s
+     */
     private static class DetectedBounds {
         double dst, max, min, sd, rms, dur;
         int s, e;

@@ -171,6 +171,15 @@ public class DbHelper {
         return cal.get(Calendar.DAY_OF_YEAR) + " " + cal.get(Calendar.YEAR);
     }
 
+    /**
+     *
+     * @param path      Path representing which Firebase node we want to navigate to. Should always
+     *                  be a string array parameter of {@link WorkoutContract}.
+     * @param strings   Array of strings that represent access of individual records in the database.
+     *                  For example, while path is used to access the "Completed Workouts" section of
+     *                  the database, this parameter is used to determine which user/workout to retrieve.
+     * @return a DatabaseReference returned after navigating to the path specified by path and strings.
+     */
     private DatabaseReference parsePath(String[] path, String... strings) {
         DatabaseReference reference = database.getRoot();
         System.out.println(reference.toString());
@@ -183,6 +192,11 @@ public class DbHelper {
         return reference;
     }
 
+    /**
+     * Contract class representing the database definition. Any database access should be made
+     * using this class, not hardcoded strings. Strings in this class represent Firebase database
+     * node keys, and String arrays represent paths to sets of data.
+     */
     public static final class WorkoutContract {
         private static final String USERS = "users";
         private static final String DATED = "dated";

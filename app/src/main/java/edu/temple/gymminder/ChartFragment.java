@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Draws a chart from a float array extra passed in using the static newInstance method.
  */
 public class ChartFragment extends Fragment {
 

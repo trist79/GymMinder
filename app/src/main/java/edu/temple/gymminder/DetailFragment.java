@@ -23,7 +23,10 @@ import java.util.Calendar;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * A Fragment showing a stored workout. This contains information about the workout, including
+ * the list of exercises defined in the workout, the current number of sets out of the total number
+ * of sets the user has completed, and a button that takes the user to DataActivity to allow them
+ * to record their set.
  */
 public class DetailFragment extends Fragment {
 
