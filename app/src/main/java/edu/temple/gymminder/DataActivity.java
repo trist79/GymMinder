@@ -75,6 +75,7 @@ public class DataActivity extends Activity implements DataUtils.Listener {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         //Prevent memory leak
         DataUtils.removeListener();
     }

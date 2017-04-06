@@ -13,10 +13,13 @@
     <array name="supported_exercises">
         <item>Bench Press</item>
         <item>Squat</item>
-        <item>Deadlift</item>
+        <item>Curl</item>
     </array>
     <string name="reps">reps</string>
     <string name="sets">sets</string>
     <string name="workout_name">Workout Name</string>
     <string name="sign_out">Sign Out</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
