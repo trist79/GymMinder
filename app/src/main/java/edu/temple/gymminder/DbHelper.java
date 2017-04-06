@@ -192,6 +192,20 @@ public class DbHelper {
         return reference;
     }
 
+    public void getCatalog() {
+        parsePath(WorkoutContract.CATALOG).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                listener.updateUi(dataSnapshot.getValue(Workout.class));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     /**
      * Contract class representing the database definition. Any database access should be made
      * using this class, not hardcoded strings. Strings in this class represent Firebase database
@@ -203,12 +217,14 @@ public class DbHelper {
         private static final String STORED = "stored";
         private static final String UNNAMED = "unnamed";
         private static final String TEST = "1";
+        private static final String CATA = "catalog";
 
         public static final String[] DATED_WORKOUTS = {USERS, DATED};
         public static final String[] WORKOUTS = {USERS, STORED};
         public static final String[] TEST_RETRIEVE = {USERS};
         public static final String[] TEST_GET_USER = {USERS, TEST};
         public static final String[] DATED_UNNAMED_WORKOUTS = {USERS, UNNAMED};
+        public static final String[] CATALOG = {CATA};
     }
 
     public interface Listener {
