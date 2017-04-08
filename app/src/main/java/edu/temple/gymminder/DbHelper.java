@@ -1,7 +1,11 @@
 package edu.temple.gymminder;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,6 +34,8 @@ public class DbHelper {
     public DbHelper(Listener listener) {
         this.listener = listener;
     }
+
+
 
     public void getTestUser() {
         parsePath(WorkoutContract.TEST_GET_USER).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -109,7 +115,13 @@ public class DbHelper {
             if (workout.exercises.get(i).completed == null) return;
         }
         String day = formatDateForWorkout(date);
-        parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName).setValue(workout);
+        Task<Void> t = parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName).setValue(workout);
+        if(listener!=null) t.addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                listener.onWorkoutAdded();
+            }
+        });
     }
 
     public void addWorkout(Workout workout, FirebaseUser user, Date date){
@@ -230,6 +242,7 @@ public class DbHelper {
     public interface Listener {
         void updateUi(Workout workout);
         void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
+        void onWorkoutAdded();
     }
 
 }
