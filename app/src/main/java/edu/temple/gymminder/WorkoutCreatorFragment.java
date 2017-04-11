@@ -188,7 +188,7 @@ public class WorkoutCreatorFragment extends Fragment {
         v.findViewById(R.id.finishExerciseButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DbHelper dbHelper = new DbHelper(null);
+                DbHelper dbHelper = DbHelper.newInstance(null);
                 //TODO error checking for no input values in one of the exercise fields
                 dbHelper.addNewWorkout(new Workout(exercises, true),
                         ((EditText) getView().findViewById(R.id.workoutNameEditText)).getText().toString(),

@@ -17,6 +17,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    productFlavors {
+        espresso {
+            applicationIdSuffix ".espresso"
+            versionNameSuffix "-espresso"
+        }
+        main {
+            applicationIdSuffix ".main"
+            versionNameSuffix "-main"
+
+        }
+    }
 }
 
 repositories {

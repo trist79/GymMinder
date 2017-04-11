@@ -136,7 +136,7 @@ public class DetailFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DbHelper dbHelper = new DbHelper(null);
+                DbHelper dbHelper = DbHelper.newInstance(null);
                 ArrayList<Exercise> exercises = new ArrayList<>();
                 for (int i = 0; i < lv.getAdapter().getCount(); i++) {
                     exercises.add((Exercise) lv.getAdapter().getItem(i));

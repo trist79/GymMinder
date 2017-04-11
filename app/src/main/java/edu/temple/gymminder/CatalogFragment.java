@@ -30,7 +30,7 @@ public class CatalogFragment extends Fragment implements DbHelper.Listener {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_catalog, container, false);
-        DbHelper helper = new DbHelper(this);
+        DbHelper helper = DbHelper.newInstance(this);
         helper.getCatalog();
         return v;
     }

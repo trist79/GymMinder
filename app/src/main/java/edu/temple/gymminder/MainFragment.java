@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class MainFragment extends Fragment implements DbHelper.Listener {
 
     FirebaseAuth auth = FirebaseAuth.getInstance();
-    DbHelper db = new DbHelper(this);
+    DbHelper db = DbHelper.newInstance(this);
     DetailListener listener;
 
 

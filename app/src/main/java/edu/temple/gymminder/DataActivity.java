@@ -27,6 +27,7 @@ public class DataActivity extends Activity implements DataUtils.Listener {
     private ArrayList<Long> timestamps = new ArrayList<>();
     private Vibrator vibrator;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

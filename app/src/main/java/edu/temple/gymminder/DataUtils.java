@@ -281,7 +281,9 @@ public class DataUtils {
         double max = 0;
         int index = -1;
         for (int i = start + lag; i < processedData.get(0).size(); i++) {
-            if (((processedData.get(0).get(i) - mean) / std) > z) {
+            float repPeakValue = repPeak != null ? repPeak.amplitude : 0;
+            if (((processedData.get(0).get(i) - mean) / std) > z &&
+                    processedData.get(0).get(i) * PEAK_SIMILARITY_FACTOR > repPeakValue) {
                 index = processedData.get(0).get(i) > max ? i : index;
                 max = processedData.get(0).get(i) > max ? processedData.get(0).get(i) : max;
             } else if (index > 0) {

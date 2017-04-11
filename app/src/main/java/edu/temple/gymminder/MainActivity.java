@@ -17,8 +17,6 @@ import com.google.firebase.auth.FirebaseUser;
 public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
         MainFragment.DetailListener, WorkoutCreatorFragment.Listener {
 
-    //TODO: Add sign-out button to options
-
     private FirebaseAuth auth;
 
     @Override
@@ -75,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         });
     }
 
-    @Override
     public void goToMain() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mainFrame, new MainFragment())
@@ -83,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 .commit();
     }
 
-    @Override
     public void goToDetail(Workout workout, String name) {
         DetailFragment detailFragment = DetailFragment.newInstance(workout, name);
         getSupportFragmentManager().beginTransaction()
@@ -92,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 .commit();
     }
 
-    @Override
     public void goToWorkoutCreator() {
         WorkoutCreatorFragment workoutCreatorFragment = new WorkoutCreatorFragment();
         getSupportFragmentManager().beginTransaction()
@@ -100,6 +95,15 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 .addToBackStack(null)
                 .commit();
     }
+
+    public void goToAdHocCreator(){
+        AdHocCreatorFragment workoutCreatorFragment = new AdHocCreatorFragment();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainFrame, workoutCreatorFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
 
     @Override
     public void finishFragment(Fragment f) {

@@ -25,9 +25,16 @@ public class DbHelper {
      * the data. All data returned is a Workout or a List of Workouts.
      */
     private DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-    private Listener listener;
+    protected Listener listener;
 
-    public DbHelper(Listener listener) {
+    public static DbHelper newInstance(Listener listener) {
+        if(BuildConfig.FLAVOR.equals("espresso")){
+            return new DbHelperStub(listener);
+        }
+        return new DbHelper(listener);
+    }
+
+    public DbHelper(Listener listener){
         this.listener = listener;
     }
 
@@ -80,7 +87,7 @@ public class DbHelper {
      * @param user        owner of workout
      * @param date        date workout was completed
      */
-    public void retreieveWorkoutDate(String workoutName, FirebaseUser user, Date date) {
+    public void retrieeveWorkoutDate(String workoutName, FirebaseUser user, Date date) {
         String day = formatDateForWorkout(date);
         parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName)
                 .addListenerForSingleValueEvent(new ValueEventListener() {

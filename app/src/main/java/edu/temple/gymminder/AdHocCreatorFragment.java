@@ -157,7 +157,7 @@ public class AdHocCreatorFragment extends Fragment {
                     if(e.reps > 0) newExercises.add(e);
                 }
                 if(newExercises.size() > 0){
-                    new DbHelper(null).addWorkout(new Workout(newExercises), "ad hoc",
+                    DbHelper.newInstance(null).addWorkout(new Workout(newExercises), "ad hoc",
                             FirebaseAuth.getInstance().getCurrentUser(),
                             Calendar.getInstance().getTime());
                 }
