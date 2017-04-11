@@ -15,8 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
-        MainFragment.DetailListener, WorkoutCreatorFragment.Listener {
-
+        MainFragment.DetailListener, WorkoutCreatorFragment.Listener, AdHocCreatorFragment.Listener {
     private FirebaseAuth auth;
 
     @Override
@@ -103,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 .addToBackStack(null)
                 .commit();
     }
-
 
     @Override
     public void finishFragment(Fragment f) {

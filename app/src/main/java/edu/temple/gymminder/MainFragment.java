@@ -101,6 +101,11 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
+    public void onWorkoutAdded() {
+
+    }
+
+    @Override
     public void onAttach(Context c) {
         super.onAttach(c);
         listener = (DetailListener) c;

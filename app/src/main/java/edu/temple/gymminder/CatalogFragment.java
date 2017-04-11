@@ -54,4 +54,9 @@ public class CatalogFragment extends Fragment implements DbHelper.Listener {
     public void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names) {
 
     }
+
+    @Override
+    public void onWorkoutAdded() {
+
+    }
 }
