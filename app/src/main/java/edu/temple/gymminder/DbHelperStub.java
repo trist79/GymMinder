@@ -3,6 +3,7 @@ package edu.temple.gymminder;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by rober_000 on 4/11/2017.
@@ -25,12 +26,37 @@ public class DbHelperStub extends DbHelper {
         workouts.add(new Workout(exercises));
         ArrayList<String> names = new ArrayList<>();
         names.add("hey p3p");
-        listener.respondToWorkouts(workouts, names);
+        if(listener!=null) {
+            listener.respondToWorkouts(workouts, names);
+        }
     }
 
     @Override
     public void getCatalog() {
-        listener.updateUi(null);
+        ArrayList<Exercise> exercises = new ArrayList<>();
+        exercises.add(new Exercise("Curls", -1, -1));
+        exercises.add(new Exercise("Bench", -1, -1));
+        exercises.add(new Exercise("Squat", -1, -1));
+        Workout workout = new Workout(exercises);
+        if(listener!=null) {
+            listener.updateUi(workout);
+        }
     }
+
+    @Override
+    public void addWorkout(Workout workout, String workoutName, FirebaseUser user, Date date){
+        if(listener!=null) {
+            listener.onWorkoutAdded();
+        }
+    }
+
+    @Override
+    public void addNewWorkout(Workout workout, String workoutName, FirebaseUser user){
+        if(listener!=null) {
+            listener.onWorkoutAdded();
+        }
+    }
+
+
 
 }

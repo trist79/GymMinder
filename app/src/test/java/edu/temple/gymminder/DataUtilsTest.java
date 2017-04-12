@@ -423,6 +423,16 @@ public class DataUtilsTest {
     }
 
     @Test
+    public void testMovingZScorePeakDetectionReturnsNullWithNegativeValues(){
+        int lag=5, window=20, start=50;
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        processed.get(0).add(-50f);
+        for(int i=0; i<50; i++) processed.get(0).add(1f);
+        Object o = DataUtils.movingZScorePeakDetection(lag, window, 10, 0);
+        assertNull(o);
+    }
+
+    @Test
     public void testMovingZScorePeakDetectionWorksWithNoiseValues() throws NoSuchFieldException, IllegalAccessException {
         Class peakClass = getAccessibleDataUtilsClass("Peak");
         for(int i=0; i<50; i++) processed.get(0).add((float) Math.random());

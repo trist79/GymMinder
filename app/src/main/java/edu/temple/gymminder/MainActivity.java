@@ -23,6 +23,9 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupAuth();
+        if(BuildConfig.FLAVOR.equals("espresso")){
+            auth.signOut();
+        }
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (auth.getCurrentUser() == null) {
             fragmentManager.beginTransaction()
