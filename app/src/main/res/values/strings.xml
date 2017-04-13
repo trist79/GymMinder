@@ -8,6 +8,7 @@
     <string name="sets_progress">%1$d/%2$d</string>
     <string name="start_button_text">start</string>
     <string name="save_workout_text">Save workout results</string>
+    <string name="stored_workouts_text">\nStored Workouts:</string>
 
     <string name="finish">Finish</string>
     <array name="supported_exercises">
@@ -23,4 +24,5 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="workout_reps_display">" Reps: %1$d"</string>
+    <string name="greeting">Hey %1$s how you doin ;)</string>
 </resources>
