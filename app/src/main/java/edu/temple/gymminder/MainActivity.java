@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
             "Until I found it was me vs me.";
 
     private FirebaseAuth auth;
+    private GeofenceFragment geofenceFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +55,13 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
             fragmentManager.beginTransaction()
                     .replace(R.id.mainFrame, new SigninFragment())
                     .commit();
+        } else if(getIntent().getExtras()!=null) {
+            if(getIntent().getExtras().get(START_FRAGMENT_EXTRA)!=null){
+                handleStartFragmentExtra(getIntent().getExtras());
+            }
         } else {
             goToMain();
         }
-        fragmentManager.beginTransaction()
-                .replace(R.id.mainFrame, new GeofenceFragment())
-                .commit();
     }
 
     @Override
@@ -67,21 +69,20 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         Bundle extras = intent.getExtras();
         if(extras!=null) {
             if(extras.get(START_FRAGMENT_EXTRA)!=null) {
-                String fragment = extras.getString(START_FRAGMENT_EXTRA, "");
-                switch (fragment) {
-                    case AD_HOC:
-                        goToAdHocCreator();
-                        return;
-                    default:
-                        goToMain();
-                }
+                handleStartFragmentExtra(extras);
             }
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    private void handleStartFragmentExtra(Bundle extras){
+        String fragment = extras.getString(START_FRAGMENT_EXTRA, "");
+        switch (fragment) {
+            case AD_HOC:
+                goToAdHocCreator();
+                break;
+            default:
+                goToMain();
+        }
     }
 
     @Override
@@ -93,8 +94,13 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.signOutOption) {
-            auth.signOut();
+        switch (item.getItemId()){
+            case R.id.signOutOption:
+                auth.signOut();
+                break;
+            case R.id.geofenceOption:
+                goToGeofence();
+                break;
         }
         return true;
     }

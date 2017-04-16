@@ -30,4 +30,5 @@
     <string name="latitude">Latitude</string>
     <string name="notification_content">Let us help out!</string>
     <string name="notification_title">Looking to work out?</string>
+    <string name="geofence">Geofence</string>
 </resources>

@@ -43,6 +43,7 @@ dependencies {
     compile 'com.github.davidmoten:fastdtw:0.1'
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
     compile 'com.google.android.gms:play-services-location:9.6.0'
+    compile 'com.google.android.gms:play-services-places:9.6.0'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:2.0.57-beta'
 }

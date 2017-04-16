@@ -1,6 +1,7 @@
 package edu.temple.gymminder;
 
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +19,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
@@ -27,6 +30,9 @@ import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
@@ -44,7 +50,9 @@ public class GeofenceFragment extends Fragment implements GoogleApiClient.Connec
 
     private PendingIntent geoFencingPendingIntent;
     private static final long LOCATION_UPDATE_INTERVAL = BuildConfig.DEBUG ? 5000 : 60000;
+    private static final int DEFAULT_RADIUS = 100;
     private static final String GEOFENCE_KEY = "Into my ragged coat sleeves";
+    private static final int PLACES_ACTIVITY_RESULT = 96;
     private GoogleApiClient mGoogleApiClient;
 
     private EditText mLatitudeEditText;
@@ -60,7 +68,14 @@ public class GeofenceFragment extends Fragment implements GoogleApiClient.Connec
         v.findViewById(R.id.getLocationButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateLocation();
+                try {
+                    startActivityForResult(new PlacePicker.IntentBuilder().build(getActivity()),
+                            PLACES_ACTIVITY_RESULT);
+                } catch (GooglePlayServicesRepairableException e) {
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    e.printStackTrace();
+                }
             }
         });
         v.findViewById(R.id.finishGeofenceButton).setOnClickListener(new View.OnClickListener() {
@@ -162,6 +177,16 @@ public class GeofenceFragment extends Fragment implements GoogleApiClient.Connec
                     PendingIntent.getService(getContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         }
         return geoFencingPendingIntent;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode==PLACES_ACTIVITY_RESULT){
+            if(resultCode== Activity.RESULT_OK){
+                LatLng latLng = PlacePicker.getPlace(getContext(), data).getLatLng();
+                startGeofencing(latLng.latitude, latLng.longitude, DEFAULT_RADIUS);
+            }
+        }
     }
 
     @Override

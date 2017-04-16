@@ -20,6 +20,9 @@
         <activity android:name=".DataActivity"/>
         <service android:name=".GeofenceIntentService"
             android:exported="true"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBge4oyHEkx7nNGRTGLvRvh4sy9mw-0NiM"/>
     </application>
 
 </manifest>
