@@ -25,4 +25,9 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="workout_reps_display">" Reps: %1$d"</string>
     <string name="greeting">Hey %1$s how you doin ;)</string>
+    <string name="gps_radius">Size</string>
+    <string name="longitude">Longitude</string>
+    <string name="latitude">Latitude</string>
+    <string name="notification_content">Let us help out!</string>
+    <string name="notification_title">Looking to work out?</string>
 </resources>

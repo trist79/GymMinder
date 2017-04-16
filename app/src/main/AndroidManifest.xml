@@ -18,7 +18,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".DataActivity"/>
-        <service android:name=".GeofenceIntentService"/>
+        <service android:name=".GeofenceIntentService"
+            android:exported="true"/>
     </application>
 
 </manifest>

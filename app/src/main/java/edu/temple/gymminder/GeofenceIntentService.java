@@ -7,8 +7,6 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.util.Log;
 
-import com.google.android.gms.location.Geofence;
-import com.google.android.gms.location.GeofenceStatusCodes;
 import com.google.android.gms.location.GeofencingEvent;
 
 /**
@@ -32,17 +30,20 @@ public class GeofenceIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d("Geofence Service", "Intent:" + intent.getAction());
         GeofencingEvent event = GeofencingEvent.fromIntent(intent);
+        Log.d("Geofence Service", "Event:" + !event.hasError());
         if(event.hasError()){
             Log.e(TAG, "Error: " + event.getErrorCode());
             return;
         }
+        //Build Intent to start Activity and AdHocFragment
         Intent startIntent = new Intent(this, MainActivity.class);
+        startIntent.putExtra(MainActivity.START_FRAGMENT_EXTRA, MainActivity.AD_HOC);
+
         Notification notification = new Notification.Builder(this)
-                .setContentTitle("")
-                .setSmallIcon(R.drawable.common_full_open_on_phone)
-                .setContentText("")
+                .setContentTitle(getResources().getString(R.string.notification_title))
+                .setSmallIcon(R.drawable.ic_fitness_center_black_24dp)
+                .setContentText(getResources().getString(R.string.notification_content))
                 .setAutoCancel(true)
                 .setContentIntent(PendingIntent.getActivity(this, 0, startIntent, PendingIntent.FLAG_CANCEL_CURRENT))
                 .build();

@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -32,13 +33,13 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
-        MainFragment.DetailListener, WorkoutCreatorFragment.Listener, AdHocCreatorFragment.Listener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
+        MainFragment.DetailListener, WorkoutCreatorFragment.Listener, AdHocCreatorFragment.Listener{
 
-    private PendingIntent geoFencingPendingIntent;
-    private GoogleApiClient mGoogleApiClient;
+    public static final String AD_HOC = "Laughing to the bank like ahhHA";
+    public static final String START_FRAGMENT_EXTRA = "It was always me vs the world." +
+            "Until I found it was me vs me.";
+
     private FirebaseAuth auth;
-    private static final long LOCATION_UPDATE_INTERVAL = BuildConfig.DEBUG ? 5000 : 60000;
-    private static final String GEOFENCE_KEY = "Into my ragged coat sleeves";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +55,28 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                     .replace(R.id.mainFrame, new SigninFragment())
                     .commit();
         } else {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.mainFrame, new MainFragment())
-                    .commit();
+            goToMain();
         }
-        Log.d("W", "What");
-        connectToPlayServices();
+        fragmentManager.beginTransaction()
+                .replace(R.id.mainFrame, new GeofenceFragment())
+                .commit();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Bundle extras = intent.getExtras();
+        if(extras!=null) {
+            if(extras.get(START_FRAGMENT_EXTRA)!=null) {
+                String fragment = extras.getString(START_FRAGMENT_EXTRA, "");
+                switch (fragment) {
+                    case AD_HOC:
+                        goToAdHocCreator();
+                        return;
+                    default:
+                        goToMain();
+                }
+            }
+        }
     }
 
     @Override
@@ -102,7 +119,6 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
     public void goToMain() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mainFrame, new MainFragment())
-                .addToBackStack(null)
                 .commit();
     }
 
@@ -142,73 +158,12 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 .commit();
     }
 
-    private PendingIntent getGeofencingPendingIntent() {
-        if (geoFencingPendingIntent == null) {
-            Intent intent = new Intent(this, GeofenceIntentService.class);
-            geoFencingPendingIntent =
-                    PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        }
-        return geoFencingPendingIntent;
+    public void goToGeofence(){
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainFrame, new GeofenceFragment())
+                .addToBackStack(null)
+                .commit();
     }
 
-    private void startGeofencing(double latitude, double longitude) {
-        ArrayList<Geofence> fences = new ArrayList<>();
-        fences.add(new Geofence.Builder()
-                .setRequestId(GEOFENCE_KEY)
-                .setCircularRegion(latitude, longitude, 1000)
-                .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-//                .setLoiteringDelay(6000)
-                .build());
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-        }
-        GeofencingRequest.Builder builder = new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
-        builder.addGeofences(fences);
-        LocationServices.GeofencingApi.addGeofences(mGoogleApiClient, builder.build(),
-                getGeofencingPendingIntent()).setResultCallback(this);
-        LocationRequest request = new LocationRequest();
-        request.setInterval(LOCATION_UPDATE_INTERVAL);
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                request, new LocationListener() {
-                    @Override
-                    public void onLocationChanged(Location location) {
 
-                    }
-                });
-    }
-
-    private void connectToPlayServices(){
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-            mGoogleApiClient.connect();
-        }
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.d("Google API", "Connected");
-        startGeofencing(10, 10);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.d("Google API", "Connection suspended");
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d("Google API", "Failed to connect");
-    }
-
-    @Override
-    public void onResult(@NonNull Status status) {
-        Log.d("Geofence", "Success: " + status.getStatus());
-    }
 }
