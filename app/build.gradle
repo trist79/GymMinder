@@ -47,6 +47,7 @@ dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:2.0.57-beta'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
 }
 
 
