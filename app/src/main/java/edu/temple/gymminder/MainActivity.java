@@ -1,36 +1,21 @@
 package edu.temple.gymminder;
 
-import android.Manifest;
-import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.Geofence;
-import com.google.android.gms.location.GeofencingRequest;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.util.ArrayList;
+import edu.temple.gymminder.geofence.GeofenceFragment;
 
 public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
         MainFragment.DetailListener, WorkoutCreatorFragment.Listener, AdHocCreatorFragment.Listener{
@@ -40,8 +25,8 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
             "Until I found it was me vs me.";
 
     private FirebaseAuth auth;
-    private GeofenceFragment geofenceFragment;
-
+    private Fragment activeFragment;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,10 +63,10 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         String fragment = extras.getString(START_FRAGMENT_EXTRA, "");
         switch (fragment) {
             case AD_HOC:
-                goToAdHocCreator();
+                startFragment(new AdHocCreatorFragment());
                 break;
             default:
-                goToMain();
+                startFragment(new MainFragment());
         }
     }
 
@@ -99,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 auth.signOut();
                 break;
             case R.id.geofenceOption:
-                goToGeofence();
+                startFragment(new GeofenceFragment());
                 break;
         }
         return true;
@@ -123,29 +108,16 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
     }
 
     public void goToMain() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, new MainFragment())
-                .commit();
+        startFragment(new MainFragment());
     }
 
     public void goToDetail(Workout workout, String name) {
         DetailFragment detailFragment = DetailFragment.newInstance(workout, name);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, detailFragment)
-                .addToBackStack(null)
-                .commit();
+        startFragment(detailFragment);
     }
 
     public void goToWorkoutCreator() {
         WorkoutCreatorFragment workoutCreatorFragment = new WorkoutCreatorFragment();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, workoutCreatorFragment)
-                .addToBackStack(null)
-                .commit();
-    }
-
-    public void goToAdHocCreator() {
-        AdHocCreatorFragment workoutCreatorFragment = new AdHocCreatorFragment();
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mainFrame, workoutCreatorFragment)
                 .addToBackStack(null)
@@ -157,18 +129,14 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         getSupportFragmentManager().popBackStack();
     }
 
-    public void goToChart(float[] accelerationStream) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, ChartFragment.newInstance(accelerationStream))
-                .addToBackStack(null)
-                .commit();
-    }
 
-    public void goToGeofence(){
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, new GeofenceFragment())
-                .addToBackStack(null)
-                .commit();
+    public void startFragment(Fragment fragment){
+        FragmentTransaction transaction = getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.mainFrame, fragment);
+        if(activeFragment instanceof MainFragment) transaction = transaction.addToBackStack(null);
+        transaction.commit();
+        activeFragment = fragment;
     }
 
 
