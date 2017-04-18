@@ -1,4 +1,4 @@
-package edu.temple.gymminder;
+package edu.temple.gymminder.geofence;
 
 import android.app.IntentService;
 import android.app.Notification;
@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.google.android.gms.location.GeofencingEvent;
+
+import edu.temple.gymminder.MainActivity;
+import edu.temple.gymminder.R;
 
 /**
  * Created by rober_000 on 4/12/2017.
@@ -22,16 +25,12 @@ public class GeofenceIntentService extends IntentService {
         super(name);
     }
 
-    public GeofenceIntentService(){
-        super("She's laughing like a choir girl");
-    }
-
     private static final String TAG = "GeofenceIntentService";
 
     @Override
     protected void onHandleIntent(Intent intent) {
         GeofencingEvent event = GeofencingEvent.fromIntent(intent);
-        Log.d("Geofence Service", "Event:" + !event.hasError());
+        Log.d(TAG, "Event:" + !event.hasError());
         if(event.hasError()){
             Log.e(TAG, "Error: " + event.getErrorCode());
             return;
