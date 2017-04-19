@@ -8,6 +8,7 @@
     <string name="sets_progress">%1$d/%2$d</string>
     <string name="start_button_text">start</string>
     <string name="save_workout_text">Save workout results</string>
+    <string name="stored_workouts_text">\nStored Workouts:</string>
 
     <string name="finish">Finish</string>
     <string name="start">Start</string>
@@ -36,4 +37,11 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="workout_reps_display">" Reps: %1$d"</string>
+    <string name="greeting">Hey %1$s how you doin ;)</string>
+    <string name="gps_radius">Size</string>
+    <string name="longitude">Longitude</string>
+    <string name="latitude">Latitude</string>
+    <string name="notification_content">Let us help out!</string>
+    <string name="notification_title">Looking to work out?</string>
+    <string name="geofence">Geofence</string>
 </resources>

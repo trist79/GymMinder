@@ -63,7 +63,7 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_ad_hoc_creator, container, false);
-        exercises.add(new Exercise(":^)", -99, -99));
+        if(exercises.size()==0) exercises.add(new Exercise(":^)", -99, -99));
         listAdapter = new BaseAdapter() {
             @Override
             public int getCount() {

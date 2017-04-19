@@ -44,7 +44,8 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
                 listener.goToWorkoutCreator();
             }
         });
-        ((TextView) v.findViewById(R.id.greeting)).setText(auth.getCurrentUser().getEmail());
+        ((TextView) v.findViewById(R.id.greeting)).setText(
+                getResources().getString(R.string.greeting ,auth.getCurrentUser().getEmail()));
         return v;
     }
 
@@ -61,11 +62,8 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
 
     @Override
     public void respondToWorkouts(final ArrayList<Workout> workouts, final ArrayList<String> names) {
-        String res = "";
-        for (String name : names) {
-            res += name + "\n";
-        }
-        ((TextView) getView().findViewById(R.id.workouts)).setText(res);
+        ((TextView) getView().findViewById(R.id.workouts)).setText(
+                getResources().getText(R.string.stored_workouts_text));
         ListView lv = (ListView) getView().findViewById(R.id.workoutsList);
         lv.setAdapter(new BaseAdapter() {
             @Override
