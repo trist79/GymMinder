@@ -8,7 +8,7 @@ import java.util.ArrayList;
  */
 
 public class Exercise implements Serializable {
-    public String workout;
+    public String name;
     public int sets;
     public int reps;
     public ArrayList<Integer> completed = null;
@@ -19,14 +19,14 @@ public class Exercise implements Serializable {
 
     }
 
-    public Exercise(String workout, int sets, int reps) {
-        this.workout = workout;
+    public Exercise(String name, int sets, int reps) {
+        this.name = name;
         this.sets = sets;
         this.reps = reps;
     }
 
-    public Exercise(String workout, int sets, int reps, ArrayList<Integer> completed, int setsDone) {
-        this.workout = workout;
+    public Exercise(String name, int sets, int reps, ArrayList<Integer> completed, int setsDone) {
+        this.name = name;
         this.sets = sets;
         this.reps = reps;
         this.completed = completed;
@@ -34,7 +34,7 @@ public class Exercise implements Serializable {
     }
 
     public Exercise(Exercise exercise) {
-        workout = exercise.workout;
+        name = exercise.name;
         sets = exercise.sets;
         reps = exercise.reps;
         initActive();
@@ -58,13 +58,13 @@ public class Exercise implements Serializable {
         this.accelerationStream = accelerationStream;
     }
 
-    public void setWorkout(String workout) {
-        this.workout = workout;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public String toString() {
-        return workout + ": " + reps + "x" + sets;
+        return name + ": " + reps + "x" + sets;
     }
 
 }

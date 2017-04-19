@@ -1,15 +1,15 @@
 package edu.temple.gymminder;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Vibrator;
+import android.support.v7.app.AppCompatActivity;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.net.URI;
 import java.util.ArrayList;
 
 /**
@@ -17,43 +17,37 @@ import java.util.ArrayList;
  * responding to calling component with relevant data such as number of reps, stream stats, the
  * stream array, etc.
  */
-public class DataActivity extends Activity implements DataUtils.Listener {
+public class DataActivity extends AppCompatActivity implements
+        ExerciseDataFragment.OnFragmentInteractionListener,
+        CalibrateFragment.OnFragmentInteractionListener {
 
     public final static String EXTRA_REPS_DONE = "We smoked the last one an hour ago";
     public final static String EXTRA_MAX_VELOCITY = "Cathy I'm lost";
     public final static String EXTRA_AVG_VELOCITY = "I don't know why";
 
-    private ArrayList<ArrayList<Float>> data = new ArrayList<>(4);
-    private ArrayList<Long> timestamps = new ArrayList<>();
-    private Vibrator vibrator;
-
+    private Exercise mExercise;
+    private ArrayList<ArrayList<Float>> data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-        for (int i = 0; i < 3; i++) data.add(new ArrayList<Float>());
-        result(4, 5, 6);
-    }
+        setContentView(R.layout.activity_data);
 
-    void setupSensor() {
-        SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        DataUtils.init(data, timestamps);
-        DataUtils.setListener(this);
-        sm.registerListener(new SensorEventListener() {
-            @Override
-            public void onSensorChanged(SensorEvent event) {
-                DataUtils.process(event.values, event.timestamp);
+        // Try to load the repetition pattern data for this exercise. Calibrate for it if it doesn't exist.
+        File f = DataUtils.loadRepetitionFile(mExercise.name, this);
+        if (f.exists()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(f));
+                DataUtils.loadRepetitionPatternTimeSeries(reader);
+                goToExerciseData();
+            } catch (FileNotFoundException e) {
+                goToCalibrate();
             }
 
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-            }
-        }, sensor, 10000);
+        } else {
+            goToCalibrate();
+        }
     }
-
 
     void result(int reps, int mv, int av) {
         Intent intent = new Intent();
@@ -74,15 +68,26 @@ public class DataActivity extends Activity implements DataUtils.Listener {
         finish();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        //Prevent memory leak
-        DataUtils.removeListener();
+    public void goToExerciseData() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainFrame, ExerciseDataFragment.newInstance(mExercise))
+                .commit();
+    }
+
+    public void goToCalibrate() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainFrame, CalibrateFragment.newInstance(mExercise.name))
+                .commit();
     }
 
     @Override
-    public void respondToRep() {
-        vibrator.vibrate(100);
+    public void onCalibrationComplete(Uri uri, Integer majorAxisIndex) {
+        File f = new File(uri.getPath());
+
+    }
+
+    @Override
+    public void didFinish(int reps, int mv, int av, ArrayList<ArrayList<Float>> data) {
+
     }
 }

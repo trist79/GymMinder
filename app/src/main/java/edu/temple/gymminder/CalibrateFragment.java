@@ -7,7 +7,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +18,6 @@ import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesBase;
 
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -122,7 +121,7 @@ public class CalibrateFragment extends Fragment {
         TimeSeries zTimeSeries = mZTimeSeriesBuilder.build();
 
         // TODO: Start recording, process the data, and write to a file
-        File f = new File(getContext().getCacheDir(), mExerciseName + "_calibration.dat");
+        File f = DataUtils.loadRepetitionFile(mExerciseName, getContext());
         if (mListener != null) {
             mListener.onCalibrationComplete(Uri.fromFile(f), 0);
         }

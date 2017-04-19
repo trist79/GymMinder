@@ -1,5 +1,8 @@
 package edu.temple.gymminder;
 
+import android.content.Context;
+import android.support.annotation.Nullable;
+
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
 import com.fastdtw.dtw.WarpPath;
@@ -43,6 +46,7 @@ public class DataUtils {
 
     public static Peak repPeak;
     public static TimeSeries repTimeSeries;
+    public static int majorAxisIndex;
 
     private static Listener listener;
 
@@ -539,11 +543,17 @@ public class DataUtils {
         return 1 / (1 + Math.exp(-1.0 * res)) >= .5;
     }
 
+    public static File loadRepetitionFile(String exerciseName, Context context) {
+        File f = new File(context.getCacheDir(), exerciseName + "_calibration.dat");
+        return f;
+    }
+
     /**
-     * Loads repPeak and repTimeSeries for this class from a reader containing two lines of data.
+     * Loads repPeak and repTimeSeries for this class from a reader containing three lines of data.
      * The first of which contains comma-separated values representing amplitudes at a consistent
      * time distance apart. The second line contains Peak information containing the index of the
      * peak in the stream, and the amplitude of the peak.
+     * The last line contains the index of the major axis.
      * @param reader    reader from which to read the TimeSeries and Peak data.
      */
     public static void loadRepetitionPatternTimeSeries(BufferedReader reader) {
@@ -555,10 +565,15 @@ public class DataUtils {
             for (String s : numbers) {
                 builder = builder.add(i++, Float.parseFloat(s));
             }
+
             line = reader.readLine();
             numbers = line.split(",");
             repPeak = new Peak(Integer.parseInt(numbers[0]), Float.parseFloat(numbers[1]));
             repTimeSeries = builder.build();
+
+            line = reader.readLine();
+            majorAxisIndex = Integer.parseInt(line);
+
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -101,7 +101,7 @@ public class DetailFragment extends Fragment {
                         setProgress.setText(getString(R.string.sets_progress,
                                 ++exercise.setsDone, exercise.sets));
                         Intent intent = new Intent(getContext(), DataActivity.class);
-                        intent.putExtra(EXTRA_WORKOUT, exercise.workout);
+                        intent.putExtra(EXTRA_WORKOUT, exercise.name);
                         intent.putExtra(EXTRA_NUMREPS, exercise.reps);
                         startActivityForResult(intent, RESULT_REPS);
                     }
