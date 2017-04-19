@@ -107,7 +107,7 @@ public class WorkoutCreatorFragment extends Fragment {
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                         Exercise ex = (Exercise) listAdapter.getItem(position); //refers to ListView
                         String workout = (String) spinner.getAdapter().getItem(i); //refers to Spinner
-                        ex.setWorkout(workout);
+                        ex.setName(workout);
                     }
 
                     @Override
@@ -117,9 +117,9 @@ public class WorkoutCreatorFragment extends Fragment {
                 });
 
                 final Exercise exercise = (Exercise) getItem(position);
-                if (!exercise.workout.equals(PLACEHOLDER_STRING)) {
+                if (!exercise.name.equals(PLACEHOLDER_STRING)) {
                     for (int i = 0; i < exerciseNames.length; i++) {
-                        if (exercise.workout.equals(exerciseNames[i])) {
+                        if (exercise.name.equals(exerciseNames[i])) {
                             spinner.setSelection(i);
                             break;
                         }

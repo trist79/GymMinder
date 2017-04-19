@@ -9,15 +9,20 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
-import com.fastdtw.timeseries.TimeSeries;
-import com.fastdtw.timeseries.TimeSeriesBase;
-
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -37,8 +42,12 @@ public class CalibrateFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
+    private SensorManager mSensorManager;
+    private SensorEventListener mSensorListener;
+
     private String mExerciseName;
-    private TimeSeriesBase.Builder mXTimeSeriesBuilder, mYTimeSeriesBuilder, mZTimeSeriesBuilder;
+    private ArrayList<Float> xValues, yValues, zValues;
+    private ArrayList<Long> timestamps;
 
     // UI
     private ProgressBar mProgessBar;
@@ -68,6 +77,10 @@ public class CalibrateFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Show "Done" button in menu when this fragment is present
+        setHasOptionsMenu(true);
+
         if (getArguments() != null) {
             mExerciseName = getArguments().getString(EXERCISE_ARG);
         }
@@ -79,9 +92,13 @@ public class CalibrateFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_calibrate, container, false);
 
-        mXTimeSeriesBuilder = TimeSeriesBase.builder();
-        mYTimeSeriesBuilder = TimeSeriesBase.builder();
-        mZTimeSeriesBuilder = TimeSeriesBase.builder();
+        xValues = new ArrayList<>();
+        yValues = new ArrayList<>();
+        zValues = new ArrayList<>();
+        timestamps = new ArrayList<>();
+
+        TextView titleTextView = (TextView) v.findViewById(R.id.calibrate_title);
+        titleTextView.setText(mExerciseName);
 
         mProgessBar = (ProgressBar) v.findViewById(R.id.calibrate_progess);
         mButton = (Button) v.findViewById(R.id.calibrate_button);
@@ -97,50 +114,97 @@ public class CalibrateFragment extends Fragment {
         return v;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_calibrate_menu, menu);
+    }
+
     public void onButtonPressed() {
 
         switch (mButtonState) {
             case START:
                 mButton.setText(R.string.done_calibration);
                 mButtonState = ButtonState.STOP;
+
+                // Animate and show the progress bar
+                mProgessBar.animate();
+                mProgessBar.setVisibility(View.VISIBLE);
+
+                setupSensor();
                 break;
             case STOP:
                 mButton.setText(R.string.redo_calibration);
                 mButtonState = ButtonState.REDO;
+
+                // Hide the progress bar
+                mProgessBar.setVisibility(View.INVISIBLE);
+
+                mSensorManager.unregisterListener(mSensorListener);
                 break;
             default:
                 break;
         }
-
-        // Animate and show the progress bar
-        mProgessBar.animate();
-        mProgessBar.setVisibility(View.VISIBLE);
-
-        TimeSeries xTimeSeries = mXTimeSeriesBuilder.build();
-        TimeSeries yTimeSeries = mYTimeSeriesBuilder.build();
-        TimeSeries zTimeSeries = mZTimeSeriesBuilder.build();
-
-        // TODO: Start recording, process the data, and write to a file
-        File f = DataUtils.loadRepetitionFile(mExerciseName, getContext());
-        if (mListener != null) {
-            mListener.onCalibrationComplete(Uri.fromFile(f), 0);
-        }
     }
 
     void setupSensor() {
-        SensorManager sm = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
-        Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        sm.registerListener(new SensorEventListener() {
+        mSensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+        Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+
+        mSensorListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
-                mXTimeSeriesBuilder.add(event.timestamp, event.values[0]);
-                mYTimeSeriesBuilder.add(event.timestamp, event.values[1]);
-                mZTimeSeriesBuilder.add(event.timestamp, event.values[2]);
+                xValues.add(event.values[0]);
+                yValues.add(event.values[1]);
+                zValues.add(event.values[2]);
+                timestamps.add(event.timestamp);
             }
 
             @Override
             public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-        }, sensor, 10000);
+        };
+
+        mSensorManager.registerListener(mSensorListener, sensor, 10000);
+    }
+
+    void process() {
+        File f = DataUtils.loadRepetitionFile(mExerciseName, getContext());
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(f));
+            StringBuilder sb = new StringBuilder();
+            ArrayList<ArrayList<Float>> axes = new ArrayList<>(3);
+            axes.add(xValues);
+            axes.add(yValues);
+            axes.add(zValues);
+
+            // Find the major axis among the three
+            int majorAxisIndex = DataUtils.detectMajorAxis(axes);
+
+            // Write first line (amplitudes)
+            for (Float val : axes.get(majorAxisIndex)) {
+                sb.append(val);
+                sb.append(",");
+            }
+            writer.append(sb.toString());
+            writer.newLine();
+
+            // TODO: Find and write peak info as second line
+            // Write second line (peak info)
+            writer.write(0 + "," + 0.0);
+            writer.newLine();
+
+            // Write third line (index of major axis)
+            writer.write(majorAxisIndex + "");
+
+            writer.close();
+            if (mListener != null) {
+                mListener.onCalibrationComplete(Uri.fromFile(f), majorAxisIndex);
+            }
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mListener.onCalibrationComplete(null, -1);
     }
 
     @Override
@@ -158,6 +222,19 @@ public class CalibrateFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // handle item selection
+        switch (item.getItemId()) {
+            case R.id.done_option:
+                if (mButtonState == ButtonState.REDO)
+                    process();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public interface OnFragmentInteractionListener {

@@ -60,7 +60,7 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mExercise = (Exercise) savedInstanceState.getSerializable(ARG_EXERCISE);
+            mExercise = (Exercise) getArguments().getSerializable(ARG_EXERCISE);
         }
 
         vibrator = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);

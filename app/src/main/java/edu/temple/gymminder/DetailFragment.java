@@ -33,8 +33,7 @@ public class DetailFragment extends Fragment {
     private static final String WORKOUT_ARG = "SPARROW THAN A SNAIL";
     private static final String NAME_ARG = "There are no registered users";
     private static final String PLACEHOLDER_WORKOUT = "So for now let's just";
-    public static final String EXTRA_WORKOUT = "I heard cathedral bells";
-    public static final String EXTRA_NUMREPS = "Juniper and lamplight";
+    public static final String EXTRA_EXERCISE = "I heard cathedral bells";
     public static final int RESULT_REPS = 7073;
 
     ListView lv;
@@ -101,8 +100,7 @@ public class DetailFragment extends Fragment {
                         setProgress.setText(getString(R.string.sets_progress,
                                 ++exercise.setsDone, exercise.sets));
                         Intent intent = new Intent(getContext(), DataActivity.class);
-                        intent.putExtra(EXTRA_WORKOUT, exercise.name);
-                        intent.putExtra(EXTRA_NUMREPS, exercise.reps);
+                        intent.putExtra(EXTRA_EXERCISE, exercise);
                         startActivityForResult(intent, RESULT_REPS);
                     }
                 });

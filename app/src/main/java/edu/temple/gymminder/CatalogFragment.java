@@ -42,7 +42,7 @@ public class CatalogFragment extends Fragment implements DbHelper.Listener {
             Log.d(TAG, "Writing workouts");
             for (Exercise e : workout.exercises) {
                 TextView t = new TextView(getContext());
-                t.setText(e.workout);
+                t.setText(e.name);
                 v.addView(t);
             }
         } else {

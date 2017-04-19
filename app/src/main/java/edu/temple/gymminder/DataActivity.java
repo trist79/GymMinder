@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.net.URI;
 import java.util.ArrayList;
 
 /**
@@ -32,6 +31,16 @@ public class DataActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_data);
+
+        if (savedInstanceState != null) {
+            mExercise = (Exercise) savedInstanceState.getSerializable(DetailFragment.EXTRA_EXERCISE);
+        } else {
+            Bundle extras = getIntent().getExtras();
+            if (extras == null)
+                throw new RuntimeException("Attempting to create DataActivity without an exercise");
+
+            mExercise = (Exercise) extras.getSerializable(DetailFragment.EXTRA_EXERCISE);
+        }
 
         // Try to load the repetition pattern data for this exercise. Calibrate for it if it doesn't exist.
         File f = DataUtils.loadRepetitionFile(mExercise.name, this);
@@ -70,24 +79,32 @@ public class DataActivity extends AppCompatActivity implements
 
     public void goToExerciseData() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, ExerciseDataFragment.newInstance(mExercise))
+                .replace(R.id.data_frame, ExerciseDataFragment.newInstance(mExercise))
                 .commit();
     }
 
     public void goToCalibrate() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, CalibrateFragment.newInstance(mExercise.name))
+                .replace(R.id.data_frame, CalibrateFragment.newInstance(mExercise.name))
                 .commit();
     }
 
     @Override
     public void onCalibrationComplete(Uri uri, Integer majorAxisIndex) {
         File f = new File(uri.getPath());
-
+        if (f.exists()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(f));
+                DataUtils.loadRepetitionPatternTimeSeries(reader);
+                goToExerciseData();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
     public void didFinish(int reps, int mv, int av, ArrayList<ArrayList<Float>> data) {
-
+        result(reps, mv, av);
     }
 }

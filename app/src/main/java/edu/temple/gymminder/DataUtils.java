@@ -53,12 +53,14 @@ public class DataUtils {
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time) {
         data = dataList;
         timestamps = time;
+        processedData = new ArrayList<>(3);
+        for (int i = 0; i < 3; i++) processedData.add(new ArrayList<Float>());
     }
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time, ArrayList<ArrayList<Float>> processedDataList) {
+        init(dataList, time);
         processedData = processedDataList;
         avgNode = null;
-        init(dataList, time);
     }
 
     static void init(ArrayList<ArrayList<Float>> dataList, ArrayList<Long> time, ArrayList<ArrayList<Float>> processedDataList, File file) {
@@ -166,7 +168,7 @@ public class DataUtils {
      * @param timestamp timestamp of event
      */
     static void process(float[] values, long timestamp) {
-        int i = 0; //TODO: determine which index is the major axis
+        int i = majorAxisIndex;
 
         float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
         //First time adding a node, just add it lel
@@ -259,14 +261,14 @@ public class DataUtils {
      * @param axes An array of event values for each axis
      * @return The index of the major axis in the axes array
      */
-    private int detectMajorAxis(float[][] axes) {
+    public static int detectMajorAxis(ArrayList<ArrayList<Float>> axes) {
         float maxDifference = 0;
         int index = 0;
         
         // Check the difference between the min and max values for each axis
         // TODO: Add reference reps and change algorithm to use min DTW distance to reference
         int i = 0;
-        for (float[] axis : axes) {
+        for (ArrayList<Float> axis : axes) {
             float min = 0, max = 0;
             for (float value : axis) {
                 if (value < min)
@@ -552,8 +554,8 @@ public class DataUtils {
      * Loads repPeak and repTimeSeries for this class from a reader containing three lines of data.
      * The first of which contains comma-separated values representing amplitudes at a consistent
      * time distance apart. The second line contains Peak information containing the index of the
-     * peak in the stream, and the amplitude of the peak.
-     * The last line contains the index of the major axis.
+     * peak in the stream, and the amplitude of the peak. The last line contains the index of the
+     * major axis.
      * @param reader    reader from which to read the TimeSeries and Peak data.
      */
     public static void loadRepetitionPatternTimeSeries(BufferedReader reader) {

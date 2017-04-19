@@ -27,8 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import static edu.temple.gymminder.DetailFragment.EXTRA_WORKOUT; //TODO refactor to DataActivity
-
+import static edu.temple.gymminder.DetailFragment.EXTRA_EXERCISE; //TODO refactor to DataActivity
 
 /**
  * A simple {@link Fragment} subclass.
@@ -121,7 +120,7 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                             Exercise ex = (Exercise) listAdapter.getItem(position); //refers to ListView
                             String workout = (String) spinner.getAdapter().getItem(i); //refers to Spinner
-                            ex.setWorkout(workout);
+                            ex.setName(workout);
                         }
 
                         @Override
@@ -131,9 +130,9 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                     });
 
                     final Exercise exercise = (Exercise) getItem(position);
-                    if (!exercise.workout.equals(PLACEHOLDER_STRING)) {
+                    if (!exercise.name.equals(PLACEHOLDER_STRING)) {
                         for (int i = 0; i < exerciseNames.length; i++) {
-                            if (exercise.workout.equals(exerciseNames[i])) {
+                            if (exercise.name.equals(exerciseNames[i])) {
                                 spinner.setSelection(i);
                                 break;
                             }
@@ -145,7 +144,7 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                             exercises.add(new Exercise(PLACEHOLDER_STRING, -999, -999));
                             listAdapter.notifyDataSetChanged();
                             Intent intent = new Intent(getContext(), DataActivity.class);
-                            intent.putExtra(EXTRA_WORKOUT, exercise.workout);
+                            intent.putExtra(EXTRA_EXERCISE, exercise);
                             startActivityForResult(intent, RESULT_REPS);
                         }
                     });
@@ -153,7 +152,7 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                     ll = (LinearLayout) inflater.inflate(R.layout.item_ad_hoc_completed,
                             parent, false);
                     ((TextView) ll.findViewById(R.id.exerciseTextView)).setText(
-                            ((Exercise) getItem(position)).workout);
+                            ((Exercise) getItem(position)).name);
                     ((TextView) ll.findViewById(R.id.repsTextView)).setText(
                             getString(R.string.workout_reps_display, ((Exercise) getItem(position)).reps));
                 }
