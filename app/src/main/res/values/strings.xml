@@ -11,6 +11,16 @@
     <string name="stored_workouts_text">\nStored Workouts:</string>
 
     <string name="finish">Finish</string>
+    <string name="start">Start</string>
+    <string name="calibrate_title">Calibrate</string>
+    <string name="calibrate_msg">You need to calibrate your device before you can begin this exercise.</string>
+    <string name="calibrate_instructions">To calibrate your device for this workout, press \"Start Calibration\" and perform three reps of the exercise to the best of your ability, focusing on proper form. Press "Done Calibration" when complete.</string>
+    <string name="start_calibration">Start Calibration</string>
+    <string name="done_calibration">Done Calibration</string>
+    <string name="redo_calibration">Redo Calibration</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+
     <array name="supported_exercises">
         <item>Bench Press</item>
         <item>Squat</item>

@@ -51,7 +51,7 @@ public class DataActivity extends Activity implements DataUtils.Listener {
             public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
             }
-        }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }, sensor, 10000);
     }
 
 

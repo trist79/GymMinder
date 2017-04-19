@@ -252,6 +252,36 @@ public class DataUtils {
     }
 
     /**
+     * @param axes An array of event values for each axis
+     * @return The index of the major axis in the axes array
+     */
+    private int detectMajorAxis(float[][] axes) {
+        float maxDifference = 0;
+        int index = 0;
+        
+        // Check the difference between the min and max values for each axis
+        // TODO: Add reference reps and change algorithm to use min DTW distance to reference
+        int i = 0;
+        for (float[] axis : axes) {
+            float min = 0, max = 0;
+            for (float value : axis) {
+                if (value < min)
+                    min = value;
+                if (value > max)
+                    max = value;
+            }
+
+            float difference = Math.abs(max - min);
+            if (difference > maxDifference) {
+                maxDifference = difference;
+                index = i;
+            }
+            i++;
+        }
+        return index;
+    }
+
+    /**
      * @param lag    The amount of data points to use to calculate std and mean
      * @param window The total number of data points we want to check
      * @param z      The z-score threshold for detection
