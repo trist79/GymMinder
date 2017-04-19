@@ -24,6 +24,7 @@ public class GeofenceIntentService extends IntentService {
     public GeofenceIntentService(String name) {
         super(name);
     }
+    public GeofenceIntentService() { super("She's laughing like a choir girl"); }
 
     private static final String TAG = "GeofenceIntentService";
 

@@ -370,10 +370,9 @@ public class DataUtils {
     }
 
     /**
-     *
-     * @param peaks         List of peaks for which we want to reduce any potential bad peaks
-     * @param originalPeak  Original peak, which we used to calculate minimum amplitude threshold
-     *                      of other peaks
+     * @param peaks        List of peaks for which we want to reduce any potential bad peaks
+     * @param originalPeak Original peak, which we used to calculate minimum amplitude threshold
+     *                     of other peaks
      * @return A List of peaks that is a subset of the original, with peaks with too small a
      * amplitude removed.
      */
@@ -389,11 +388,10 @@ public class DataUtils {
     }
 
     /**
-     *
-     * @param series    TimeSeries for which we want to return a subseries
-     * @param start     The index at which we want our subseries to begin (inclusive)
-     * @param end       The index at which we want our subseries to end (exclusive)
-     * @return          A TimeSeries object representing a subsection of series
+     * @param series TimeSeries for which we want to return a subseries
+     * @param start  The index at which we want our subseries to begin (inclusive)
+     * @param end    The index at which we want our subseries to end (exclusive)
+     * @return A TimeSeries object representing a subsection of series
      */
     public static TimeSeries subSeries(TimeSeries series, int start, int end) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
@@ -406,6 +404,7 @@ public class DataUtils {
     /**
      * This and getFirstMatchingIndexOfLast are used to calculate the bounds of the repetition. This
      * method in is used to calculate the beginning of the rep.
+     *
      * @param path path representing the DTW path between two TimeSeries.
      * @return The last of our acceleration stream corresponding to the first index of our
      * reference TimeSeries.
@@ -425,6 +424,7 @@ public class DataUtils {
     /**
      * This and getFirstMatchingIndexOfLast are used to calculate the bounds of the repetition. This
      * method in is used to calculate the end of the rep.
+     *
      * @param path path representing the DTW path between two TimeSeries.
      * @return The first of our acceleration stream corresponding to the last index of our
      * reference TimeSeries.
@@ -495,11 +495,67 @@ public class DataUtils {
         return calcFeatures(t1, t1Peak, repTimeSeries);
     }
 
+    public static ArrayList<Repetition> calculateReps(TimeSeries t1) {
+        ArrayList<Peak> peaks = zScorePeakDetection(t1);
+        if (repPeak != null) peaks = reducePeaks(peaks, repPeak);
+        ArrayList<Repetition> repetitions = new ArrayList<>(peaks.size());
+        ArrayList<DetectedBounds> finalBounds = new ArrayList<>(repetitions.size());
+        for (Peak p : peaks) {
+            DetectedBounds bounds = detectBounds(t1, p);
+            if (accept(bounds) && notOverlapping(p, finalBounds)) {
+                repetitions.add(new Repetition(bounds, p, t1));
+                finalBounds.add(bounds);
+
+            }
+        }
+        return repetitions;
+    }
+
+    private static boolean notOverlapping(Peak peak, ArrayList<DetectedBounds> bounds) {
+        for(DetectedBounds b : bounds){
+            if(peak.index <= b.e && peak.index >= b.s) return false;
+        }
+        return true;
+    }
+
+    public static ArrayList<Peak> zScorePeakDetection(TimeSeries t1) {
+        double z = 1.5;
+        double sum = 0;
+        for(int i=0;i<t1.size();i++){
+            sum+=t1.getMeasurement(i, 0);
+        }
+        double mean = sum / t1.size();
+        sum = 0;
+        for(int i=0;i<t1.size();i++){
+            sum += Math.pow(t1.getMeasurement(i, 0) - mean, 2);
+        }
+        double std = Math.sqrt(sum / t1.size());
+        ArrayList<Integer> indices = new ArrayList<>();
+        for(int i=0;i<t1.size();i++){
+            if(((t1.getMeasurement(i, 0) - mean) / std) > z){
+                indices.add(i);
+            }
+        }
+        //Limit peaks based on taking only highest value of consecutive peaks
+        ArrayList<Peak> finalPeaks = new ArrayList<>(indices.size());
+        for(int i=0; i<indices.size(); i++){
+            int max = indices.get(i);
+            int furthest = i;
+            for(int j=i+1;j<indices.size(); j++){
+                if(indices.get(j-1)+1!=indices.get(j)) break;
+                furthest = j;
+                max = indices.get(j) > max ? indices.get(j) : max;
+            }
+            i = furthest;
+            finalPeaks.add(new Peak(max, (float) t1.getMeasurement(max, 0)));
+        }
+        return finalPeaks;
+    }
+
     /**
-     *
      * @param bounds DetectedBounds representing a detected repetition for which we want to determine
      *               if it is a valid rep.
-     * @return  True, if the result of logistic regression determines this is a valid rep, else false.
+     * @return True, if the result of logistic regression determines this is a valid rep, else false.
      */
     public static boolean accept(DetectedBounds bounds) {
         //TODO logistic regression to find coefficients
@@ -514,7 +570,8 @@ public class DataUtils {
      * The first of which contains comma-separated values representing amplitudes at a consistent
      * time distance apart. The second line contains Peak information containing the index of the
      * peak in the stream, and the amplitude of the peak.
-     * @param reader    reader from which to read the TimeSeries and Peak data.
+     *
+     * @param reader reader from which to read the TimeSeries and Peak data.
      */
     public static void loadRepetitionPatternTimeSeries(BufferedReader reader) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
@@ -569,6 +626,23 @@ public class DataUtils {
         public Peak(int index, float amplitude) {
             this.index = index;
             this.amplitude = amplitude;
+        }
+    }
+
+    public static class Repetition {
+        int s, e, peakIndex;
+        float peakValue;
+        double[] accelerationStream;
+
+        public Repetition(DetectedBounds bounds, Peak peak, TimeSeries t1){
+            s = bounds.s;
+            e = bounds.e;
+            peakIndex = peak.index;
+            peakValue = peak.amplitude;
+            accelerationStream = new double[t1.size()];
+            for(int i=0; i<t1.size();i++){
+                accelerationStream[i] = t1.getMeasurement(i, 0);
+            }
         }
     }
 
