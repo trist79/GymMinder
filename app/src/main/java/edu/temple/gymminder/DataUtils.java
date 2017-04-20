@@ -215,7 +215,7 @@ public class DataUtils {
                 peaks.put((int) (newPeak.index + EXPANSION_VALUE *
                         (repTimeSeries.size() - repPeak.index)), newPeak);
             }
-            if (peaks.containsKey(processedData.get(0).size())) {
+            if (peaks.containsKey(processedData.get(i).size())) {
                     /*
                         Because we used an index for our HashMap key value, we can use the
                         current index to detect if any peaks are ready to be examined
@@ -298,40 +298,41 @@ public class DataUtils {
         //Implementation of: http://stackoverflow.com/q/22583391/
         //'influence' is 0
         //For now we only detect the peak within the lag
-        if (processedData.get(0).size() < lag) return null;
+        int m = majorAxisIndex;
+        if (processedData.get(m).size() < lag) return null;
         start -= window;
         start = start >= 0 ? start : 0;
         //Calculate std and mean for first lag samples
         double mean = 0;
         for (int i = start; i < start + lag; i++) {
-            mean += processedData.get(0).get(i);
+            mean += processedData.get(m).get(i);
         }
         mean /= lag;
         double std = 0;
         for (int i = start; i < start + lag; i++) {
-            std += Math.pow(processedData.get(0).get(i) - mean, 2);
+            std += Math.pow(processedData.get(m).get(i) - mean, 2);
         }
         std /= lag;
 
         //Begin search
         double max = 0;
         int index = -1;
-        for (int i = start + lag; i < processedData.get(0).size(); i++) {
+        for (int i = start + lag; i < processedData.get(m).size(); i++) {
             float repPeakValue = repPeak != null ? repPeak.amplitude : 0;
-            if (((processedData.get(0).get(i) - mean) / std) > z &&
-                    processedData.get(0).get(i) * PEAK_SIMILARITY_FACTOR > repPeakValue) {
-                index = processedData.get(0).get(i) > max ? i : index;
-                max = processedData.get(0).get(i) > max ? processedData.get(0).get(i) : max;
+            if (((processedData.get(m).get(i) - mean) / std) > z &&
+                    processedData.get(m).get(i) * PEAK_SIMILARITY_FACTOR > repPeakValue) {
+                index = processedData.get(m).get(i) > max ? i : index;
+                max = processedData.get(m).get(i) > max ? processedData.get(m).get(i) : max;
             } else if (index > 0) {
                 //If we have an index but the new data point is not in a peak, we exit
                 break;
             } else {
                 //Only recalculate mean and std if we are not in a peak
-                mean -= (processedData.get(0).get(i - lag) / lag);
-                mean += (processedData.get(0).get(i) / lag);
+                mean -= (processedData.get(m).get(i - lag) / lag);
+                mean += (processedData.get(m).get(i) / lag);
                 std = 0;
                 for (int j = i - lag + 1; j <= i; j++) {
-                    std += Math.pow(processedData.get(0).get(j), 2);
+                    std += Math.pow(processedData.get(m).get(j), 2);
                 }
                 std /= lag;
             }
@@ -527,6 +528,63 @@ public class DataUtils {
         return new double[]{dst, max, min, std, rms};
     }
 
+    public static ArrayList<Repetition> calculateReps(TimeSeries t1) {
+        ArrayList<Peak> peaks = zScorePeakDetection(t1);
+        if (repPeak != null) peaks = reducePeaks(peaks, repPeak);
+        ArrayList<Repetition> repetitions = new ArrayList<>(peaks.size());
+        ArrayList<DetectedBounds> finalBounds = new ArrayList<>(repetitions.size());
+        for (Peak p : peaks) {
+            DetectedBounds bounds = detectBounds(t1, p);
+            if (accept(bounds) && notOverlapping(p, finalBounds)) {
+                repetitions.add(new Repetition(bounds, p, t1));
+                finalBounds.add(bounds);
+
+            }
+        }
+        return repetitions;
+    }
+
+    private static boolean notOverlapping(Peak peak, ArrayList<DetectedBounds> bounds) {
+        for(DetectedBounds b : bounds){
+            if(peak.index <= b.e && peak.index >= b.s) return false;
+        }
+        return true;
+    }
+
+    public static ArrayList<Peak> zScorePeakDetection(TimeSeries t1) {
+        double z = 1.5;
+        double sum = 0;
+        for(int i=0;i<t1.size();i++){
+            sum+=t1.getMeasurement(i, 0);
+        }
+        double mean = sum / t1.size();
+        sum = 0;
+        for(int i=0;i<t1.size();i++){
+            sum += Math.pow(t1.getMeasurement(i, 0) - mean, 2);
+        }
+        double std = Math.sqrt(sum / t1.size());
+        ArrayList<Integer> indices = new ArrayList<>();
+        for(int i=0;i<t1.size();i++){
+            if(((t1.getMeasurement(i, 0) - mean) / std) > z){
+                indices.add(i);
+            }
+        }
+        //Limit peaks based on taking only highest value of consecutive peaks
+        ArrayList<Peak> finalPeaks = new ArrayList<>(indices.size());
+        for(int i=0; i<indices.size(); i++){
+            int max = indices.get(i);
+            int furthest = i;
+            for(int j=i+1;j<indices.size(); j++){
+                if(indices.get(j-1)+1!=indices.get(j)) break;
+                furthest = j;
+                max = indices.get(j) > max ? indices.get(j) : max;
+            }
+            i = furthest;
+            finalPeaks.add(new Peak(max, (float) t1.getMeasurement(max, 0)));
+        }
+        return finalPeaks;
+    }
+
     public static double[] calcFeatures(TimeSeries t1, Peak t1Peak) {
         return calcFeatures(t1, t1Peak, repTimeSeries);
     }
@@ -616,6 +674,23 @@ public class DataUtils {
         public Peak(int index, float amplitude) {
             this.index = index;
             this.amplitude = amplitude;
+        }
+    }
+
+    public static class Repetition {
+        int s, e, peakIndex;
+        float peakValue;
+        double[] accelerationStream;
+
+        public Repetition(DetectedBounds bounds, Peak peak, TimeSeries t1){
+            s = bounds.s;
+            e = bounds.e;
+            peakIndex = peak.index;
+            peakValue = peak.amplitude;
+            accelerationStream = new double[t1.size()];
+            for(int i=0; i<t1.size();i++){
+                accelerationStream[i] = t1.getMeasurement(i, 0);
+            }
         }
     }
 

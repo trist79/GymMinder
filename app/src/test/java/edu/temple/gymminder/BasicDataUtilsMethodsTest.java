@@ -87,7 +87,8 @@ public class BasicDataUtilsMethodsTest {
     public void testLoadRepetitionPatternTimeSeries() throws IOException, NoSuchFieldException, IllegalAccessException {
         when(reader.readLine())
                 .thenReturn("1.4,2,3.6,4,5,6.3,7,8,9")
-                .thenReturn("5,6.3");
+                .thenReturn("5,6.3")
+                .thenReturn("0");
         DataUtils.loadRepetitionPatternTimeSeries(reader);
         //TODO: use reflection and set these back to private... do it with some other things too...
         assertNotNull(DataUtils.repPeak);
@@ -96,6 +97,7 @@ public class BasicDataUtilsMethodsTest {
         Object o = DataUtils.repPeak;
         assertEquals(5, res.getAccessibleDataUtilsClass("Peak").getDeclaredField("index").get(o));
         assertEquals(6.3f, (float) res.getAccessibleDataUtilsClass("Peak").getDeclaredField("amplitude").get(o), 0.01);
+        assertEquals(0, DataUtils.majorAxisIndex);
     }
 
 }
