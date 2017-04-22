@@ -42,6 +42,13 @@ public class SigninFragment extends Fragment {
         v.findViewById(R.id.signinButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(email.getText().toString().equals("")
+                        || password.getText().toString().equals("")
+                        || !email.getText().toString().contains("@")){
+                    Toast.makeText(getActivity(), "Please enter a valid Email and Password.",
+                            Toast.LENGTH_LONG).show();
+                }
+                else{
                 auth.signInWithEmailAndPassword(email.getText().toString(),
                         password.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -56,7 +63,7 @@ public class SigninFragment extends Fragment {
                                     Log.d("Auth", "Login failed");
                                 }
                             }
-                        });
+                        });}
             }
         });
         v.findViewById(R.id.signupButton).setOnClickListener(new View.OnClickListener() {
