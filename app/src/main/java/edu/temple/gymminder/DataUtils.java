@@ -1,7 +1,6 @@
 package edu.temple.gymminder;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
@@ -35,14 +34,16 @@ public class DataUtils {
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
+    public static final long POLLING_FREQUENCY = 10;
+    public static final long POLLING_RATE = SECOND / POLLING_FREQUENCY;
     private static final double PEAK_SIMILARITY_FACTOR = 3;
-    private static final double ERROR = 0.00001;
+    private static final long ERROR = 1000;
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
-    private static HashMap<Integer, Peak> peaks = new HashMap<>();
+    public static HashMap<Integer, Peak> peaks = new HashMap<>();
 
     public static Peak repPeak;
     public static TimeSeries repTimeSeries;
@@ -179,19 +180,18 @@ public class DataUtils {
             return;
         }
         float duration = (timestamp - timestamps.get(timestamps.size() - 1)) * MS2S_CONVERSION;
+        long longDuration = timestamp - timestamps.get(timestamps.size()-1);
 
-        if ((duration + ERROR) < PERIOD || avgNode != null) {
+        if ((longDuration + ERROR) < POLLING_RATE || avgNode != null) {
             //average the points with sum node
             avgNode = average(avgNode, x, duration);
             duration = avgNode[1];
             x = avgNode[0];
         }
-        if ((duration + ERROR) >= PERIOD) {
-            //interpolate if needed
-            if ((duration + ERROR) > PERIOD) x = interpolate(x, duration, i);
+        if ((longDuration - ERROR) >= PERIOD) {
             //We can approximate timestamp value by adding .1s to previous value
             //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
-            timestamps.add(timestamps.get(timestamps.size() - 1) + (long) (SECOND * PERIOD));
+            timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
             data.get(i).add(x);
             int size = processedData.get(i).size();
             for (int j = size; j >= size - (SG_FILTER.length / 2 - 1) && j > 0; j--) {
@@ -203,7 +203,7 @@ public class DataUtils {
                 applySGFilterRealtime(j, data.get(i), processedData.get(i));
             }
             avgNode = null;
-            Peak newPeak = detectPeak(size);
+            Peak newPeak = detectPeak(size, 1);
             //TODO: Probably want to put this in a thread that enqueues new peaks to check
             if (newPeak != null) {
                     /*
@@ -224,7 +224,7 @@ public class DataUtils {
                 for (int j = 0; j < processedData.get(i).size(); j++)
                     builder = builder.add(j, processedData.get(i).get(j));
                 TimeSeries t1 = builder.build();
-                DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.size()));
+                DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
 
                 peaks.remove(processedData.get(i).size());
                 if (accept(bounds)) {
@@ -667,7 +667,7 @@ public class DataUtils {
         }
     }
 
-    private static class Peak {
+    public static class Peak {
         float amplitude;
         int index;
 
