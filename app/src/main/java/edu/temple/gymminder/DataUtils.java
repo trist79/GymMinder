@@ -225,7 +225,7 @@ public class DataUtils {
                     builder = builder.add(j, processedData.get(i).get(j));
                 TimeSeries t1 = builder.build();
                 DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
-
+                int peakIndex = peaks.get(processedData.get(i).size()).index;
                 peaks.remove(processedData.get(i).size());
                 if (accept(bounds)) {
                         /*
@@ -233,7 +233,7 @@ public class DataUtils {
                             potential peaks that we now know are contained within the repetition
                          */
                     if (listener != null) listener.respondToRep();
-                    for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + bounds.e); j++) {
+                    for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
                         if (peaks.containsKey(j)) peaks.remove(j);
                     }
                 }
@@ -436,8 +436,17 @@ public class DataUtils {
     public static TimeSeries subSeries(TimeSeries series, int start, int end) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
         start = start < 0 ? 0 : start;
-        for (int i = start; i < end; i++) {
+        for (int i = start; i < end && i < series.size(); i++) {
             builder.add(series.getTimeAtNthPoint(i), series.getMeasurement(i, 0));
+        }
+        return builder.build();
+    }
+
+    public static TimeSeries seriesFromList(List<Float> data){
+        TimeSeriesBase.Builder builder = new TimeSeriesBase.Builder();
+        int i = 0;
+        for(float f : data){
+            builder = builder.add(i++, f);
         }
         return builder.build();
     }
@@ -487,6 +496,7 @@ public class DataUtils {
     public static DetectedBounds detectBounds(TimeSeries t1, Peak t1Peak) {
         int s = (int) (t1Peak.index - EXPANSION_VALUE * repPeak.index);
         int e = (int) (t1Peak.index + EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
+        int s1 = s;
         t1 = subSeries(t1, s, e);
         TimeWarpInfo info = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE);
         //Last element s in R -> C[0]
@@ -496,7 +506,8 @@ public class DataUtils {
         //Find min, mean, std, rms, dur in R[s':e']
         t1 = subSeries(t1, s, e);
         double[] f = calcFeatures(t1, t1Peak);
-        return new DetectedBounds(s, e, f[0], f[1], f[2], f[3], f[4]);
+        //Add s1 back to start and end index to get absolute start and end indices instead of relative
+        return new DetectedBounds(s+s1, e+s1, f[0], f[1], f[2], f[3], f[4]);
     }
 
     /**
@@ -554,7 +565,7 @@ public class DataUtils {
     }
 
     public static ArrayList<Peak> zScorePeakDetection(TimeSeries t1) {
-        double z = 1.5;
+        double z = 1;
         double sum = 0;
         for(int i=0;i<t1.size();i++){
             sum+=t1.getMeasurement(i, 0);
@@ -584,6 +595,7 @@ public class DataUtils {
             i = furthest;
             finalPeaks.add(new Peak(max, (float) t1.getMeasurement(max, 0)));
         }
+        if(repPeak != null) finalPeaks = reducePeaks(finalPeaks, repPeak);
         return finalPeaks;
     }
 

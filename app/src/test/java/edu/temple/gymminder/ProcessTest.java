@@ -187,15 +187,15 @@ public class ProcessTest {
             DataUtils.process(values, DataUtils.POLLING_RATE*i);
         }
         DataUtils.process(new float[] {100,100,100}, DataUtils.POLLING_RATE*50);
-        for(int i=0; i<30; i++){
+        for(int i=0; i<65; i++){
             float[] values = {0, 0, 0};
             DataUtils.process(values, DataUtils.POLLING_RATE*(i+51));
         }
-        DataUtils.process(new float[] {100,100,100}, DataUtils.POLLING_RATE*81);
+        DataUtils.process(new float[] {100,100,100}, DataUtils.POLLING_RATE*116);
         assertEquals(2, DataUtils.peaks.size());
         for(int i=0; i<35; i++){
             float[] values = {0, 0, 0};
-            DataUtils.process(values, DataUtils.POLLING_RATE*(i+82));
+            DataUtils.process(values, DataUtils.POLLING_RATE*(i+117));
         }
         assertEquals(1, DataUtils.peaks.size());
     }
@@ -210,8 +210,7 @@ public class ProcessTest {
         assertEquals(0, res.processed.get(1).size());
     }
 
-    private void setupPeakTimeSeriesAndAxis(){
-        //TODO: repTimeSeries and repPeak to actual values in extending class
+    void setupPeakTimeSeriesAndAxis(){
         TimeSeriesBase.Builder builder = new TimeSeriesBase.Builder();
         for(int i=0;i<50;i++){
             builder = builder.add(0, i);
