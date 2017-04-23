@@ -37,9 +37,7 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         }
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (auth.getCurrentUser() == null) {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.mainFrame, new SigninFragment())
-                    .commit();
+            startFragment(new SigninFragment());
         } else if(getIntent().getExtras()!=null) {
             if(getIntent().getExtras().get(START_FRAGMENT_EXTRA)!=null){
                 handleStartFragmentExtra(getIntent().getExtras());
@@ -100,8 +98,7 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                     Log.d("Auth", "Signed in");
                 } else {
                     Log.d("Auth", "Not Signed In");
-                    getSupportFragmentManager().beginTransaction().replace(R.id.mainFrame,
-                            new SigninFragment()).commit();
+                    startFragment(new SigninFragment());
                 }
             }
         });
