@@ -188,7 +188,7 @@ public class DataUtils {
             duration = avgNode[1];
             x = avgNode[0];
         }
-        if ((longDuration - ERROR) >= PERIOD) {
+        if ((longDuration + ERROR) >= PERIOD) {
             //We can approximate timestamp value by adding .1s to previous value
             //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
             timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
@@ -248,7 +248,7 @@ public class DataUtils {
         if (args.length == 0) {
             return detectPeakQRSMethod();
         } else {
-            return movingZScorePeakDetection(5, 10, 5, (int) (index - (repTimeSeries.size() * EXPANSION_VALUE)));
+            return movingZScorePeakDetection(5, 10, 5, processedData.get(majorAxisIndex).size());
         }
     }
 
