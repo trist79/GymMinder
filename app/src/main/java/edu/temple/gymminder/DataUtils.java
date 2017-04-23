@@ -194,7 +194,7 @@ public class DataUtils {
             timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
             data.get(i).add(x);
             int size = processedData.get(i).size();
-            for (int j = size; j >= size - (SG_FILTER.length / 2 - 1) && j > 0; j--) {
+            for (int j = size; j >= size - (SG_FILTER.length / 2 ) && j > 0; j--) {
                 /*
                     We want to re-process any data points that didn't have enough data to the right
                     for the entire filter to run on. The alternative to this is to delay the signal
@@ -248,7 +248,7 @@ public class DataUtils {
         if (args.length == 0) {
             return detectPeakQRSMethod();
         } else {
-            return movingZScorePeakDetection(5, 10, 5, processedData.get(majorAxisIndex).size());
+            return movingZScorePeakDetection(10, 20, 1.5, processedData.get(majorAxisIndex).size());
         }
     }
 
@@ -296,6 +296,7 @@ public class DataUtils {
      */
     public static Peak movingZScorePeakDetection(int lag, int window, double z, int start) {
         //Implementation of: http://stackoverflow.com/q/22583391/
+        //TODO: Because we filter our data it might be better to run this on the unprocessed data
         //'influence' is 0
         //For now we only detect the peak within the lag
         int m = majorAxisIndex;
@@ -434,6 +435,7 @@ public class DataUtils {
      */
     public static TimeSeries subSeries(TimeSeries series, int start, int end) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+        start = start < 0 ? 0 : start;
         for (int i = start; i < end; i++) {
             builder.add(series.getTimeAtNthPoint(i), series.getMeasurement(i, 0));
         }
