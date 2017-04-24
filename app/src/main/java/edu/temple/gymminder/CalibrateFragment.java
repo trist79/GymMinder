@@ -8,6 +8,7 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -157,6 +158,7 @@ public class CalibrateFragment extends Fragment {
                 yValues.add(event.values[1]);
                 zValues.add(event.values[2]);
                 timestamps.add(event.timestamp);
+                Log.d("calibration", "sensing");
             }
 
             @Override

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,6 +44,7 @@ public class DataActivity extends AppCompatActivity implements
         }
 
         // Try to load the repetition pattern data for this exercise. Calibrate for it if it doesn't exist.
+        Log.d("mexercise", mExercise.name);
         File f = DataUtils.loadRepetitionFile(mExercise.name, this);
         if (f.exists()) {
             try {
