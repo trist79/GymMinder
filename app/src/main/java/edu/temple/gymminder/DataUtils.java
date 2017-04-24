@@ -1,6 +1,7 @@
 package edu.temple.gymminder;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
@@ -637,7 +638,12 @@ public class DataUtils {
             String[] numbers = line.split(",");
             int i = 0;
             for (String s : numbers) {
-                builder = builder.add(i++, Float.parseFloat(s));
+                try {
+                    builder = builder.add(i++, Float.parseFloat(s));
+                } catch (NumberFormatException e){
+                    Log.d("DataUtils", "Format exception when reading from file");
+                    return;
+                }
             }
 
             line = reader.readLine();
