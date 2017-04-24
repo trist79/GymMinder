@@ -24,9 +24,9 @@ public class ProcessRealDataTest extends ProcessTest {
 
     ArrayList<ArrayList<Float>> data = new ArrayList<>(3);
 
-    @Override
-    void setupPeakTimeSeriesAndAxis(){
-        data = readData("repetition_time_series_5_reps.csv");
+
+    void setupPeakTimeSeriesAndAxis(String file){
+        data = readData(file);
         int index = 0;
         ArrayList<Float> base = readData("repetition_time_series_base.csv").get(index);
         DataUtils.Peak peak = new DataUtils.Peak(31, 2.05744835048f);
@@ -37,6 +37,11 @@ public class ProcessRealDataTest extends ProcessTest {
         DataUtils.majorAxisIndex = index;
         DataUtils.peaks = new HashMap<>();
         DataUtils.init(res.data, res.timestamps, res.processed);
+    }
+
+    @Override
+    void setupPeakTimeSeriesAndAxis(){
+        setupPeakTimeSeriesAndAxis("repetition_time_series_5_reps.csv");
     }
 
     ArrayList<ArrayList<Float>> readData(String filename){
@@ -105,10 +110,16 @@ public class ProcessRealDataTest extends ProcessTest {
     }
 
     @Test
-    public void testCalculateReps(){
+    public void testCalculateReps5(){
         setupPeakTimeSeriesAndAxis();
         assertEquals(5, DataUtils.calculateReps(DataUtils.seriesFromList(data.get(0))).size());
     }
 
-
+    @Test
+    public void testCalculateReps4(){
+        setupPeakTimeSeriesAndAxis("repetition_time_series_4_reps.csv");
+        assertEquals(4, DataUtils.calculateReps(DataUtils.seriesFromList(data.get(0))).size());
     }
+
+
+}

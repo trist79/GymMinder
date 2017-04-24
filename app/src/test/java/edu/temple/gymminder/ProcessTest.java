@@ -187,15 +187,15 @@ public class ProcessTest {
             DataUtils.process(values, DataUtils.POLLING_RATE*i);
         }
         DataUtils.process(new float[] {100,100,100}, DataUtils.POLLING_RATE*50);
-        for(int i=0; i<65; i++){
+        for(int i=0; i<31; i++){
             float[] values = {0, 0, 0};
             DataUtils.process(values, DataUtils.POLLING_RATE*(i+51));
         }
-        DataUtils.process(new float[] {100,100,100}, DataUtils.POLLING_RATE*116);
+        DataUtils.process(new float[] {100,100,100}, DataUtils.POLLING_RATE*81);
         assertEquals(2, DataUtils.peaks.size());
-        for(int i=0; i<35; i++){
+        for(int i=0; i<5; i++){ //4->5, need to fix time series data to fix
             float[] values = {0, 0, 0};
-            DataUtils.process(values, DataUtils.POLLING_RATE*(i+117));
+            DataUtils.process(values, DataUtils.POLLING_RATE*(i+82));
         }
         assertEquals(1, DataUtils.peaks.size());
     }
