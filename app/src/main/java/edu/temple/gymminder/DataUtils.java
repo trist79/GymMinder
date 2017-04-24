@@ -35,14 +35,16 @@ public class DataUtils {
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
+    public static final long POLLING_FREQUENCY = 10;
+    public static final long POLLING_RATE = SECOND / POLLING_FREQUENCY;
     private static final double PEAK_SIMILARITY_FACTOR = 3;
-    private static final double ERROR = 0.00001;
+    private static final long ERROR = 1000;
 
     private static float[] avgNode = null;
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
-    private static HashMap<Integer, Peak> peaks = new HashMap<>();
+    public static HashMap<Integer, Peak> peaks = new HashMap<>();
 
     public static Peak repPeak;
     public static TimeSeries repTimeSeries;
@@ -179,22 +181,21 @@ public class DataUtils {
             return;
         }
         float duration = (timestamp - timestamps.get(timestamps.size() - 1)) * MS2S_CONVERSION;
+        long longDuration = timestamp - timestamps.get(timestamps.size()-1);
 
-        if ((duration + ERROR) < PERIOD || avgNode != null) {
+        if ((longDuration + ERROR) < POLLING_RATE || avgNode != null) {
             //average the points with sum node
             avgNode = average(avgNode, x, duration);
             duration = avgNode[1];
             x = avgNode[0];
         }
-        if ((duration + ERROR) >= PERIOD) {
-            //interpolate if needed
-            if ((duration + ERROR) > PERIOD) x = interpolate(x, duration, i);
+        if ((longDuration + ERROR) >= PERIOD) {
             //We can approximate timestamp value by adding .1s to previous value
             //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
-            timestamps.add(timestamps.get(timestamps.size() - 1) + (long) (SECOND * PERIOD));
+            timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
             data.get(i).add(x);
             int size = processedData.get(i).size();
-            for (int j = size; j >= size - (SG_FILTER.length / 2 - 1) && j > 0; j--) {
+            for (int j = size; j >= size - (SG_FILTER.length / 2 ) && j > 0; j--) {
                 /*
                     We want to re-process any data points that didn't have enough data to the right
                     for the entire filter to run on. The alternative to this is to delay the signal
@@ -203,7 +204,7 @@ public class DataUtils {
                 applySGFilterRealtime(j, data.get(i), processedData.get(i));
             }
             avgNode = null;
-            Peak newPeak = detectPeak(size);
+            Peak newPeak = detectPeak(size, 1);
             //TODO: Probably want to put this in a thread that enqueues new peaks to check
             if (newPeak != null) {
                     /*
@@ -215,7 +216,7 @@ public class DataUtils {
                 peaks.put((int) (newPeak.index + EXPANSION_VALUE *
                         (repTimeSeries.size() - repPeak.index)), newPeak);
             }
-            if (peaks.containsKey(processedData.get(0).size())) {
+            if (peaks.containsKey(processedData.get(i).size())) {
                     /*
                         Because we used an index for our HashMap key value, we can use the
                         current index to detect if any peaks are ready to be examined
@@ -225,8 +226,8 @@ public class DataUtils {
                     builder = builder.add(j, processedData.get(i).get(j));
 
                 TimeSeries t1 = builder.build();
-                DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.size()));
-
+                DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
+                int peakIndex = peaks.get(processedData.get(i).size()).index;
                 peaks.remove(processedData.get(i).size());
                 if (accept(bounds)) {
                         /*
@@ -234,7 +235,7 @@ public class DataUtils {
                             potential peaks that we now know are contained within the repetition
                          */
                     if (listener != null) listener.respondToRep();
-                    for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + bounds.e); j++) {
+                    for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
                         if (peaks.containsKey(j)) peaks.remove(j);
                     }
                 }
@@ -248,7 +249,7 @@ public class DataUtils {
         if (args.length == 0) {
             return detectPeakQRSMethod();
         } else {
-            return movingZScorePeakDetection(5, 10, 5, (int) (index - (repTimeSeries.size() * EXPANSION_VALUE)));
+            return movingZScorePeakDetection(10, 20, 1.5, processedData.get(majorAxisIndex).size());
         }
     }
 
@@ -296,42 +297,44 @@ public class DataUtils {
      */
     public static Peak movingZScorePeakDetection(int lag, int window, double z, int start) {
         //Implementation of: http://stackoverflow.com/q/22583391/
+        //TODO: Because we filter our data it might be better to run this on the unprocessed data
         //'influence' is 0
         //For now we only detect the peak within the lag
-        if (processedData.get(0).size() < lag) return null;
+        int m = majorAxisIndex;
+        if (processedData.get(m).size() < lag) return null;
         start -= window;
         start = start >= 0 ? start : 0;
         //Calculate std and mean for first lag samples
         double mean = 0;
         for (int i = start; i < start + lag; i++) {
-            mean += processedData.get(0).get(i);
+            mean += processedData.get(m).get(i);
         }
         mean /= lag;
         double std = 0;
         for (int i = start; i < start + lag; i++) {
-            std += Math.pow(processedData.get(0).get(i) - mean, 2);
+            std += Math.pow(processedData.get(m).get(i) - mean, 2);
         }
         std /= lag;
 
         //Begin search
         double max = 0;
         int index = -1;
-        for (int i = start + lag; i < processedData.get(0).size(); i++) {
+        for (int i = start + lag; i < processedData.get(m).size(); i++) {
             float repPeakValue = repPeak != null ? repPeak.amplitude : 0;
-            if (((processedData.get(0).get(i) - mean) / std) > z &&
-                    processedData.get(0).get(i) * PEAK_SIMILARITY_FACTOR > repPeakValue) {
-                index = processedData.get(0).get(i) > max ? i : index;
-                max = processedData.get(0).get(i) > max ? processedData.get(0).get(i) : max;
+            if (((processedData.get(m).get(i) - mean) / std) > z &&
+                    processedData.get(m).get(i) * PEAK_SIMILARITY_FACTOR > repPeakValue) {
+                index = processedData.get(m).get(i) > max ? i : index;
+                max = processedData.get(m).get(i) > max ? processedData.get(m).get(i) : max;
             } else if (index > 0) {
                 //If we have an index but the new data point is not in a peak, we exit
                 break;
             } else {
                 //Only recalculate mean and std if we are not in a peak
-                mean -= (processedData.get(0).get(i - lag) / lag);
-                mean += (processedData.get(0).get(i) / lag);
+                mean -= (processedData.get(m).get(i - lag) / lag);
+                mean += (processedData.get(m).get(i) / lag);
                 std = 0;
                 for (int j = i - lag + 1; j <= i; j++) {
-                    std += Math.pow(processedData.get(0).get(j), 2);
+                    std += Math.pow(processedData.get(m).get(j), 2);
                 }
                 std /= lag;
             }
@@ -433,8 +436,18 @@ public class DataUtils {
      */
     public static TimeSeries subSeries(TimeSeries series, int start, int end) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
-        for (int i = start; i < end; i++) {
+        start = start < 0 ? 0 : start;
+        for (int i = start; i < end && i < series.size(); i++) {
             builder.add(series.getTimeAtNthPoint(i), series.getMeasurement(i, 0));
+        }
+        return builder.build();
+    }
+
+    public static TimeSeries seriesFromList(List<Float> data){
+        TimeSeriesBase.Builder builder = new TimeSeriesBase.Builder();
+        int i = 0;
+        for(float f : data){
+            builder = builder.add(i++, f);
         }
         return builder.build();
     }
@@ -484,6 +497,7 @@ public class DataUtils {
     public static DetectedBounds detectBounds(TimeSeries t1, Peak t1Peak) {
         int s = (int) (t1Peak.index - EXPANSION_VALUE * repPeak.index);
         int e = (int) (t1Peak.index + EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index));
+        int s1 = s;
         t1 = subSeries(t1, s, e);
         TimeWarpInfo info = FastDTW.compare(t1, repTimeSeries, Distances.EUCLIDEAN_DISTANCE);
         //Last element s in R -> C[0]
@@ -493,7 +507,8 @@ public class DataUtils {
         //Find min, mean, std, rms, dur in R[s':e']
         t1 = subSeries(t1, s, e);
         double[] f = calcFeatures(t1, t1Peak);
-        return new DetectedBounds(s, e, f[0], f[1], f[2], f[3], f[4]);
+        //Add s1 back to start and end index to get absolute start and end indices instead of relative
+        return new DetectedBounds(s+s1, e+s1, f[0], f[1], f[2], f[3], f[4]);
     }
 
     /**
@@ -525,6 +540,64 @@ public class DataUtils {
         //Using population std I guess o3o
         std = Math.sqrt((std / (t1.size())));
         return new double[]{dst, max, min, std, rms};
+    }
+
+    public static ArrayList<Repetition> calculateReps(TimeSeries t1) {
+        ArrayList<Peak> peaks = zScorePeakDetection(t1);
+        if (repPeak != null) peaks = reducePeaks(peaks, repPeak);
+        ArrayList<Repetition> repetitions = new ArrayList<>(peaks.size());
+        ArrayList<DetectedBounds> finalBounds = new ArrayList<>(repetitions.size());
+        for (Peak p : peaks) {
+            DetectedBounds bounds = detectBounds(t1, p);
+            if (accept(bounds) && notOverlapping(p, finalBounds)) {
+                repetitions.add(new Repetition(bounds, p, t1));
+                finalBounds.add(bounds);
+
+            }
+        }
+        return repetitions;
+    }
+
+    private static boolean notOverlapping(Peak peak, ArrayList<DetectedBounds> bounds) {
+        for(DetectedBounds b : bounds){
+            if(peak.index <= b.e && peak.index >= b.s) return false;
+        }
+        return true;
+    }
+
+    public static ArrayList<Peak> zScorePeakDetection(TimeSeries t1) {
+        double z = 1;
+        double sum = 0;
+        for(int i=0;i<t1.size();i++){
+            sum+=t1.getMeasurement(i, 0);
+        }
+        double mean = sum / t1.size();
+        sum = 0;
+        for(int i=0;i<t1.size();i++){
+            sum += Math.pow(t1.getMeasurement(i, 0) - mean, 2);
+        }
+        double std = Math.sqrt(sum / t1.size());
+        ArrayList<Integer> indices = new ArrayList<>();
+        for(int i=0;i<t1.size();i++){
+            if(((t1.getMeasurement(i, 0) - mean) / std) > z){
+                indices.add(i);
+            }
+        }
+        //Limit peaks based on taking only highest value of consecutive peaks
+        ArrayList<Peak> finalPeaks = new ArrayList<>(indices.size());
+        for(int i=0; i<indices.size(); i++){
+            int max = indices.get(i);
+            int furthest = i;
+            for(int j=i+1;j<indices.size(); j++){
+                if(indices.get(j-1)+1!=indices.get(j)) break;
+                furthest = j;
+                max = indices.get(j) > max ? indices.get(j) : max;
+            }
+            i = furthest;
+            finalPeaks.add(new Peak(max, (float) t1.getMeasurement(max, 0)));
+        }
+        if(repPeak != null) finalPeaks = reducePeaks(finalPeaks, repPeak);
+        return finalPeaks;
     }
 
     public static double[] calcFeatures(TimeSeries t1, Peak t1Peak) {
@@ -566,7 +639,12 @@ public class DataUtils {
             String[] numbers = line.split(",");
             int i = 0;
             for (String s : numbers) {
-                builder = builder.add(i++, Float.parseFloat(s));
+                try {
+                    builder = builder.add(i++, Float.parseFloat(s));
+                } catch (NumberFormatException e){
+                    Log.d("DataUtils", "Format exception when reading from file");
+                    return;
+                }
             }
 
             line = reader.readLine();
@@ -610,13 +688,30 @@ public class DataUtils {
         }
     }
 
-    private static class Peak {
+    public static class Peak {
         float amplitude;
         int index;
 
         public Peak(int index, float amplitude) {
             this.index = index;
             this.amplitude = amplitude;
+        }
+    }
+
+    public static class Repetition {
+        int s, e, peakIndex;
+        float peakValue;
+        double[] accelerationStream;
+
+        public Repetition(DetectedBounds bounds, Peak peak, TimeSeries t1){
+            s = bounds.s;
+            e = bounds.e;
+            peakIndex = peak.index;
+            peakValue = peak.amplitude;
+            accelerationStream = new double[t1.size()];
+            for(int i=0; i<t1.size();i++){
+                accelerationStream[i] = t1.getMeasurement(i, 0);
+            }
         }
     }
 

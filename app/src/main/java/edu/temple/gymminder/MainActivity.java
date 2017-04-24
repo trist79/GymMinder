@@ -15,6 +15,8 @@ import android.view.MenuItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.File;
+
 import edu.temple.gymminder.geofence.GeofenceFragment;
 
 public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
@@ -34,12 +36,10 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         setupAuth();
         if (BuildConfig.FLAVOR.equals("espresso")) {
             auth.signOut();
+            DataUtils.loadRepetitionFile("Bench", this).delete();
         }
-        FragmentManager fragmentManager = getSupportFragmentManager();
         if (auth.getCurrentUser() == null) {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.mainFrame, new SigninFragment())
-                    .commit();
+            startFragment(new SigninFragment());
         } else if(getIntent().getExtras()!=null) {
             if(getIntent().getExtras().get(START_FRAGMENT_EXTRA)!=null){
                 handleStartFragmentExtra(getIntent().getExtras());
@@ -100,8 +100,7 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                     Log.d("Auth", "Signed in");
                 } else {
                     Log.d("Auth", "Not Signed In");
-                    getSupportFragmentManager().beginTransaction().replace(R.id.mainFrame,
-                            new SigninFragment()).commit();
+                    startFragment(new SigninFragment());
                 }
             }
         });

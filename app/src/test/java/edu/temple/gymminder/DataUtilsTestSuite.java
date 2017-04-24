@@ -13,6 +13,7 @@ import org.junit.runners.Suite;
         BasicDataUtilsMethodsTest.class,
         PreprocessingTest.class,
         ProcessTest.class,
+        ProcessRealDataTest.class,
         DTWTest.class
 })
 public class DataUtilsTestSuite {

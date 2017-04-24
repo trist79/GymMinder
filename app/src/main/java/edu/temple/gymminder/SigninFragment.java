@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -41,6 +42,13 @@ public class SigninFragment extends Fragment {
         v.findViewById(R.id.signinButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(email.getText().toString().equals("")
+                        || password.getText().toString().equals("")
+                        || !email.getText().toString().contains("@")){
+                    Toast.makeText(getActivity(), "Please enter a valid Email and Password.",
+                            Toast.LENGTH_LONG).show();
+                }
+                else{
                 auth.signInWithEmailAndPassword(email.getText().toString(),
                         password.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -50,15 +58,24 @@ public class SigninFragment extends Fragment {
                                     Log.d("Auth", "Login complete");
                                     listener.goToMain();
                                 } else {
+                                    Toast.makeText(getActivity(), "Incorrect Email or Password.",
+                                    Toast.LENGTH_LONG).show();
                                     Log.d("Auth", "Login failed");
                                 }
                             }
-                        });
+                        });}
             }
         });
         v.findViewById(R.id.signupButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(email.getText().toString().equals("")
+                        || password.getText().toString().equals("")
+                        || !email.getText().toString().contains("@")){
+                    Toast.makeText(getActivity(), "Please enter a valid Email and Password.",
+                            Toast.LENGTH_LONG).show();
+                }
+                else{
                 auth.createUserWithEmailAndPassword(email.getText().toString(),
                         password.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -68,10 +85,11 @@ public class SigninFragment extends Fragment {
                                     Log.d("Auth", "Oh Yes");
                                     listener.goToMain();
                                 } else {
+
                                     Log.d("Auth", task.getException().getLocalizedMessage());
                                 }
                             }
-                        });
+                        });}
             }
         });
         return v;
