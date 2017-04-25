@@ -18,10 +18,14 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.fastdtw.timeseries.TimeSeries;
+import com.fastdtw.timeseries.TimeSeriesBase;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -178,18 +182,36 @@ public class CalibrateFragment extends Fragment {
 
             // Find the major axis among the three
             int majorAxisIndex = DataUtils.detectMajorAxis(axes);
+            ArrayList<Float> filtered = DataUtils.applySavitzkyGolayFilter(axes.get(majorAxisIndex));
+
+            // Build a time series to use for peak detection
+            TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+
+            int i = 0;
+            for (Float val : filtered) {
+                builder.add(i++, val);
+            }
+            TimeSeries timeSeries = builder.build();
+
+            ArrayList<DataUtils.Peak> peaks = DataUtils.zScorePeakDetection(timeSeries);
+            DataUtils.Peak peak;
+            if (peaks.size() > 0) {
+                peak = peaks.get(0);
+            } else {
+                // TODO: Tell the user to redo the rep, it wasn't good enough to find a peak
+                return;
+            }
 
             // Write first line (amplitudes)
-            for (Float val : axes.get(majorAxisIndex)) {
+            for (Float val : filtered) {
                 sb.append(val);
                 sb.append(",");
             }
             writer.append(sb.toString());
             writer.newLine();
 
-            // TODO: Find and write peak info as second line
             // Write second line (peak info)
-            writer.write(0 + "," + 0.0);
+            writer.write(peak.index + "," + peak.amplitude);
             writer.newLine();
 
             // Write third line (index of major axis)
