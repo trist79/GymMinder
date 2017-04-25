@@ -86,7 +86,7 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
 
     public void onButtonPressed() {
         if (mListener != null) {
-            mListener.didFinish(0, 0, 0, null);
+            mListener.didFinish(1, null);
         }
     }
 
@@ -141,6 +141,6 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
     }
 
     public interface OnFragmentInteractionListener {
-        void didFinish(int reps, int mv, int av, ArrayList<ArrayList<Float>> data);
+        void didFinish(int reps, ArrayList<Float> data);
     }
 }
