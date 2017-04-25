@@ -12,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -32,7 +34,11 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
     private Exercise mExercise;
     private ArrayList<ArrayList<Float>> data = new ArrayList<>(4);
     private ArrayList<Long> timestamps = new ArrayList<>();
+    private int mReps = 0;
     private Vibrator vibrator;
+
+    private TextView mRepsTextView;
+    private ProgressBar mSetProgressBar;
 
     private OnFragmentInteractionListener mListener;
 
@@ -81,6 +87,9 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
             }
         });
 
+        mRepsTextView = (TextView) v.findViewById(R.id.rep_text_view);
+        mSetProgressBar = (ProgressBar) v.findViewById(R.id.setProgressBar);
+
         return v;
     }
 
@@ -94,6 +103,7 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
         SensorManager sm = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         DataUtils.init(data, timestamps);
+//        DataUtils.loadRepetitionFile(mExercise.name, getActivity());
         DataUtils.setListener(this);
         sm.registerListener(new SensorEventListener() {
             @Override
@@ -137,6 +147,11 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
 
     @Override
     public void respondToRep() {
+        if (vibrator.hasVibrator())
+            vibrator.vibrate(100);
+
+        mReps++;
+        mRepsTextView.setText(mReps + "");
 
     }
 

@@ -708,8 +708,8 @@ public class DataUtils {
     }
 
     public static class Peak {
-        float amplitude;
         int index;
+        float amplitude;
 
         public Peak(int index, float amplitude) {
             this.index = index;

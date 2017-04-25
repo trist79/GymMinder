@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_margin="16dp"
     tools:context=".ExerciseDataFragment">
 
     <!-- TODO: Update blank fragment layout -->
@@ -29,11 +30,11 @@
         android:layout_marginRight="8dp"
         android:layout_marginTop="32dp"
         android:text="@string/repetition"
-        android:textAppearance="@android:style/TextAppearance.Material.Title"
+        android:textAppearance="@android:style/TextAppearance.Material.Large"
         app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/set_text_view" />
+        app:layout_constraintTop_toBottomOf="@+id/exercise_title" />
 
     <TextView
         android:id="@+id/exercise_title"
@@ -44,37 +45,10 @@
         android:layout_marginTop="16dp"
         android:text="Exercise Title"
         android:textAppearance="@android:style/TextAppearance.Material.Display1"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.506" />
-
-    <TextView
-        android:id="@+id/set_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="64dp"
-        android:text="@string/set"
-        android:textAppearance="@android:style/TextAppearance.Material.Title"
-        app:layout_constraintHorizontal_bias="0.502"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/exercise_title" />
-
-    <TextView
-        android:id="@+id/set_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:text="0"
-        android:textAppearance="@android:style/TextAppearance.Material.Display1"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/set_label" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/finish_set_button"
@@ -87,5 +61,34 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:id="@+id/progessTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="32dp"
+        android:text="Set Progress"
+        android:textAppearance="@android:style/TextAppearance.Material.Large"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rep_text_view" />
+
+    <ProgressBar
+        android:id="@+id/setProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/finish_set_button"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progessTextView"
+        app:layout_constraintVertical_bias="0.00999999" />
 
 </android.support.constraint.ConstraintLayout>
