@@ -1,6 +1,7 @@
 package edu.temple.gymminder;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.fastdtw.dtw.FastDTW;
@@ -189,79 +190,85 @@ public class DataUtils {
      * @param values    event values
      * @param timestamp timestamp of event
      */
-    static void process(float[] values, long timestamp) {
-        int i = majorAxisIndex;
+    static void process(final float[] values, final long timestamp) {
 
-        float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
-        //First time adding a node, just add it lel
-        if (timestamps.size() == 0) {
-            timestamps.add(timestamp);
-            data.get(i).add(x);
-            processedData.get(i).add(x);
-            return;
-        }
-        float duration = (timestamp - timestamps.get(timestamps.size() - 1)) * MS2S_CONVERSION;
-        long longDuration = timestamp - timestamps.get(timestamps.size()-1);
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                int i = majorAxisIndex;
 
-        if ((longDuration + ERROR) < POLLING_RATE || avgNode != null) {
-            //average the points with sum node
-            avgNode = average(avgNode, x, duration);
-            duration = avgNode[1];
-            x = avgNode[0];
-        }
-        if ((longDuration + ERROR) >= PERIOD) {
-            //We can approximate timestamp value by adding .1s to previous value
-            //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
-            timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
-            data.get(i).add(x);
-            int size = processedData.get(i).size();
-            for (int j = size; j >= size - (SG_FILTER.length / 2 ) && j > 0; j--) {
+                float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
+                //First time adding a node, just add it lel
+                if (timestamps.size() == 0) {
+                    timestamps.add(timestamp);
+                    data.get(i).add(x);
+                    processedData.get(i).add(x);
+                    return;
+                }
+                float duration = (timestamp - timestamps.get(timestamps.size() - 1)) * MS2S_CONVERSION;
+                long longDuration = timestamp - timestamps.get(timestamps.size()-1);
+
+                if ((longDuration + ERROR) < POLLING_RATE || avgNode != null) {
+                    //average the points with sum node
+                    avgNode = average(avgNode, x, duration);
+                    duration = avgNode[1];
+                    x = avgNode[0];
+                }
+                if ((longDuration + ERROR) >= PERIOD) {
+                    //We can approximate timestamp value by adding .1s to previous value
+                    //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
+                    timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
+                    data.get(i).add(x);
+                    int size = processedData.get(i).size();
+                    for (int j = size; j >= size - (SG_FILTER.length / 2 ) && j > 0; j--) {
                 /*
                     We want to re-process any data points that didn't have enough data to the right
                     for the entire filter to run on. The alternative to this is to delay the signal
                     by waiting until we have enough data points for the entire filter.
                  */
-                applySGFilterRealtime(j, data.get(i), processedData.get(i));
-            }
-            avgNode = null;
-            Peak newPeak = detectPeak(size, 1);
-            //TODO: Probably want to put this in a thread that enqueues new peaks to check
-            if (newPeak != null) {
+                        applySGFilterRealtime(j, data.get(i), processedData.get(i));
+                    }
+                    avgNode = null;
+                    Peak newPeak = detectPeak(size, 1);
+                    //TODO: Probably want to put this in a thread that enqueues new peaks to check
+                    if (newPeak != null) {
                     /*
                         The key for our HashMap is the index of the new peak, which is the current
                         size of processedData at the time of insertion, plus the difference between
                         the size of repTimeSeries and the index of repPeak multiplied by
                         EXPANSION_VALUE.
                      */
-                peaks.put((int) (newPeak.index + EXPANSION_VALUE *
-                        (repTimeSeries.size() - repPeak.index)), newPeak);
-            }
-            if (peaks.containsKey(processedData.get(i).size())) {
+                        peaks.put((int) (newPeak.index + EXPANSION_VALUE *
+                                (repTimeSeries.size() - repPeak.index)), newPeak);
+                    }
+                    if (peaks.containsKey(processedData.get(i).size())) {
                     /*
                         Because we used an index for our HashMap key value, we can use the
                         current index to detect if any peaks are ready to be examined
                      */
-                TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
-                for (int j = 0; j < processedData.get(i).size(); j++)
-                    builder = builder.add(j, processedData.get(i).get(j));
-                TimeSeries t1 = builder.build();
-                DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
-                int peakIndex = peaks.get(processedData.get(i).size()).index;
-                peaks.remove(processedData.get(i).size());
-                if (accept(bounds)) {
+                        TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+                        for (int j = 0; j < processedData.get(i).size(); j++)
+                            builder = builder.add(j, processedData.get(i).get(j));
+                        TimeSeries t1 = builder.build();
+                        DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
+                        int peakIndex = peaks.get(processedData.get(i).size()).index;
+                        peaks.remove(processedData.get(i).size());
+                        if (accept(bounds)) {
                         /*
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
-                    if (listener != null) listener.respondToRep();
-                    for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
-                        if (peaks.containsKey(j)) peaks.remove(j);
+                            if (listener != null) listener.respondToRep();
+                            for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
+                                if (peaks.containsKey(j)) peaks.remove(j);
+                            }
+                        }
+
                     }
+
                 }
-
             }
-
-        }
+        });
 
     }
 
@@ -691,7 +698,7 @@ public class DataUtils {
      * e   - end time of the repetition
      * dur - duration of the repetition, calculated as e - s
      */
-    private static class DetectedBounds {
+    static class DetectedBounds {
         double dst, max, min, sd, rms, dur;
         int s, e;
 
