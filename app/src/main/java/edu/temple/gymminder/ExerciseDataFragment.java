@@ -10,6 +10,9 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -38,6 +41,9 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
     private int mReps = 0;
     private Vibrator vibrator;
 
+    private SensorManager mSensorManager;
+    private SensorEventListener mSensorListener;
+
     private TextView mRepsTextView;
     private ProgressBar mSetProgressBar;
 
@@ -58,7 +64,7 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
     public static ExerciseDataFragment newInstance(Exercise exercise) {
         ExerciseDataFragment fragment = new ExerciseDataFragment();
         Bundle args = new Bundle();
-        args.getSerializable(ARG_EXERCISE);
+        args.putSerializable(ARG_EXERCISE, exercise);
         fragment.setArguments(args);
         return fragment;
     }
@@ -69,6 +75,9 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
         if (getArguments() != null) {
             mExercise = (Exercise) getArguments().getSerializable(ARG_EXERCISE);
         }
+
+        // Show "Done" button in menu when this fragment is present
+        setHasOptionsMenu(true);
 
         vibrator = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
         for (int i = 0; i < 3; i++) data.add(new ArrayList<Float>());
@@ -88,25 +97,28 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
             }
         });
 
+        ((TextView) v.findViewById(R.id.exercise_title)).setText(mExercise.name);
+
         mRepsTextView = (TextView) v.findViewById(R.id.rep_text_view);
         mSetProgressBar = (ProgressBar) v.findViewById(R.id.setProgressBar);
 
         return v;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_exercise_data_menu, menu);
+    }
+
     public void onButtonPressed() {
         if (mListener != null) {
-            mListener.didFinish(1, null);
+            mListener.didFinish(mReps, data.get(DataUtils.majorAxisIndex));
         }
     }
 
     void setupSensor() {
-        SensorManager sm = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
-        Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        DataUtils.init(data, timestamps);
-//        DataUtils.loadRepetitionFile(mExercise.name, getActivity());
-        DataUtils.setListener(this);
-        sm.registerListener(new SensorEventListener() {
+        mSensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+        mSensorListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 DataUtils.process(event.values, event.timestamp);
@@ -114,7 +126,17 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
 
             @Override
             public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-        }, sensor, 10000);
+        };
+        Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        DataUtils.init(data, timestamps);
+        DataUtils.setListener(this);
+        mSensorManager.registerListener(mSensorListener, sensor, (int) DataUtils.POLLING_RATE);
+    }
+
+    private void finish() {
+        mSensorManager.unregisterListener(mSensorListener);
+        DataUtils.removeListener();
+        mListener.didFinish(mReps, data.get(DataUtils.majorAxisIndex));
     }
 
     @Override
@@ -144,6 +166,7 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
     public void onPause() {
         super.onPause();
         DataUtils.removeListener();
+        mSensorManager.unregisterListener(mSensorListener);
     }
 
     @Override
@@ -157,12 +180,34 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
 
                 mReps++;
                 mRepsTextView.setText(mReps + "");
+
+                if (mExercise != null) {
+                    int progress = (int) ((mReps / (double) mExercise.reps) * 100);
+                    mSetProgressBar.setProgress(progress);
+
+                    // We're done!
+                    if (mExercise.reps == mReps)
+                        finish();
+                }
             }
         });
 
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // handle item selection
+        switch (item.getItemId()) {
+            case R.id.recalibrate_option:
+                mListener.requestRecalibration();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     public interface OnFragmentInteractionListener {
         void didFinish(int reps, ArrayList<Float> data);
+        void requestRecalibration();
     }
 }

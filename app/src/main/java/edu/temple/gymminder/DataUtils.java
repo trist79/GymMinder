@@ -1,8 +1,8 @@
 package edu.temple.gymminder;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
@@ -18,9 +18,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by rober_000 on 2/10/2017.
@@ -30,13 +31,13 @@ public class DataUtils {
 
     //TODO: Refactor at least data processing part to instantiated class
 
-    public static final float MS2S_CONVERSION = 1.0f / 1000000000.0f;
-    public static final long SECOND = 1000000000;
+    public static final float MS2S_CONVERSION = 1.0f / 1000000.0f;
+    public static final long SECOND = 1000000;
     public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
-    public static final long POLLING_FREQUENCY = 10;
+    public static final long POLLING_FREQUENCY = 35;
     public static final long POLLING_RATE = SECOND / POLLING_FREQUENCY;
     private static final double PEAK_SIMILARITY_FACTOR = 3;
     private static final long ERROR = 1000;
@@ -45,11 +46,13 @@ public class DataUtils {
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
-    public static HashMap<Integer, Peak> peaks = new HashMap<>();
+    public static SparseArray<Peak> peaks = new SparseArray<>();
 
     public static Peak repPeak;
     public static TimeSeries repTimeSeries;
     public static int majorAxisIndex;
+
+    private static ExecutorService executorService;
 
     private static Listener listener;
 
@@ -70,7 +73,7 @@ public class DataUtils {
         init(dataList, time, processedDataList);
         try {
             loadRepetitionPatternTimeSeries(new BufferedReader(new FileReader(file)));
-            peaks = new HashMap<>((int) (EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index)));
+            peaks = new SparseArray<>((int) (EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index)));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -78,10 +81,12 @@ public class DataUtils {
 
     static void setListener(Listener l) {
         listener = l;
+        executorService = Executors.newSingleThreadExecutor();
     }
 
     //Need this to prevent possible memory leak
     static void removeListener() {
+        executorService.shutdownNow();
         listener = null;
     }
 
@@ -192,7 +197,7 @@ public class DataUtils {
      */
     static void process(final float[] values, final long timestamp) {
 
-        AsyncTask.execute(new Runnable() {
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
                 int i = majorAxisIndex;
@@ -241,7 +246,7 @@ public class DataUtils {
                         peaks.put((int) (newPeak.index + EXPANSION_VALUE *
                                 (repTimeSeries.size() - repPeak.index)), newPeak);
                     }
-                    if (peaks.containsKey(processedData.get(i).size())) {
+                    if (peaks.get(processedData.get(i).size()) != null) {
                     /*
                         Because we used an index for our HashMap key value, we can use the
                         current index to detect if any peaks are ready to be examined
@@ -260,7 +265,7 @@ public class DataUtils {
                          */
                             if (listener != null) listener.respondToRep();
                             for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
-                                if (peaks.containsKey(j)) peaks.remove(j);
+                                if (peaks.get(j) != null) peaks.remove(j);
                             }
                         }
 

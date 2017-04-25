@@ -120,6 +120,11 @@ public class DataActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void requestRecalibration() {
+        goToCalibrate();
+    }
+
+    @Override
     public void didFinish(int reps, ArrayList<Float> data) {
         result(reps, data);
     }

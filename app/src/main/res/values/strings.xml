@@ -23,6 +23,7 @@
     <string name="repetition">Repetition</string>
     <string name="set">Set</string>
     <string name="finish_set">Finish Set</string>
+    <string name="recalibrate">Recalibrate</string>
 
     <array name="supported_exercises">
         <item>Bench Press</item>

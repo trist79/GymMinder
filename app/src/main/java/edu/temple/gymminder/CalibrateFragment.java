@@ -55,7 +55,7 @@ public class CalibrateFragment extends Fragment {
     private ArrayList<Long> timestamps;
 
     // UI
-    private ProgressBar mProgessBar;
+    private ProgressBar mProgressBar;
     private Button mButton;
     private ButtonState mButtonState = ButtonState.START;
 
@@ -105,7 +105,7 @@ public class CalibrateFragment extends Fragment {
         TextView titleTextView = (TextView) v.findViewById(R.id.calibrate_title);
         titleTextView.setText(mExerciseName);
 
-        mProgessBar = (ProgressBar) v.findViewById(R.id.calibrate_progess);
+        mProgressBar = (ProgressBar) v.findViewById(R.id.calibrate_progess);
         mButton = (Button) v.findViewById(R.id.calibrate_button);
         if (mButton != null) {
             mButton.setOnClickListener(new View.OnClickListener() {
@@ -127,13 +127,18 @@ public class CalibrateFragment extends Fragment {
     public void onButtonPressed() {
 
         switch (mButtonState) {
+            case REDO:
+                xValues.clear();
+                yValues.clear();
+                zValues.clear();
+                timestamps.clear();
             case START:
                 mButton.setText(R.string.done_calibration);
                 mButtonState = ButtonState.STOP;
 
                 // Animate and show the progress bar
-                mProgessBar.animate();
-                mProgessBar.setVisibility(View.VISIBLE);
+                mProgressBar.animate();
+                mProgressBar.setVisibility(View.VISIBLE);
 
                 setupSensor();
                 break;
@@ -142,7 +147,7 @@ public class CalibrateFragment extends Fragment {
                 mButtonState = ButtonState.REDO;
 
                 // Hide the progress bar
-                mProgessBar.setVisibility(View.INVISIBLE);
+                mProgressBar.setVisibility(View.INVISIBLE);
 
                 mSensorManager.unregisterListener(mSensorListener);
                 break;
@@ -168,7 +173,7 @@ public class CalibrateFragment extends Fragment {
             public void onAccuracyChanged(Sensor sensor, int accuracy) {}
         };
 
-        mSensorManager.registerListener(mSensorListener, sensor, 10000);
+        mSensorManager.registerListener(mSensorListener, sensor, (int) DataUtils.POLLING_RATE);
     }
 
     void process() {
@@ -197,7 +202,12 @@ public class CalibrateFragment extends Fragment {
             ArrayList<DataUtils.Peak> peaks = DataUtils.zScorePeakDetection(timeSeries);
             DataUtils.Peak peak;
             if (peaks.size() > 0) {
-                peak = peaks.get(peaks.size() - 1);
+                // use the peak with the max value
+                peak = peaks.get(0);
+                for (DataUtils.Peak p : peaks) {
+                    if (p.amplitude > peak.amplitude)
+                        peak = p;
+                }
             } else {
                 // TODO: Tell the user to redo the rep, it wasn't good enough to find a peak
                 return;
