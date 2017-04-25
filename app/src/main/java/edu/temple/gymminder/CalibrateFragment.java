@@ -27,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -182,21 +183,21 @@ public class CalibrateFragment extends Fragment {
 
             // Find the major axis among the three
             int majorAxisIndex = DataUtils.detectMajorAxis(axes);
-            ArrayList<Float> filtered = DataUtils.applySavitzkyGolayFilter(axes.get(majorAxisIndex));
+            List<Float> filtered = DataUtils.applySavitzkyGolayFilter(axes.get(majorAxisIndex));
 
             // Build a time series to use for peak detection
             TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
-
             int i = 0;
             for (Float val : filtered) {
                 builder.add(i++, val);
             }
             TimeSeries timeSeries = builder.build();
 
+            // Find the peak of the rep
             ArrayList<DataUtils.Peak> peaks = DataUtils.zScorePeakDetection(timeSeries);
             DataUtils.Peak peak;
             if (peaks.size() > 0) {
-                peak = peaks.get(0);
+                peak = peaks.get(peaks.size() - 1);
             } else {
                 // TODO: Tell the user to redo the rep, it wasn't good enough to find a peak
                 return;

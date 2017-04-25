@@ -1,5 +1,6 @@
 package edu.temple.gymminder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -147,11 +148,17 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
 
     @Override
     public void respondToRep() {
-        if (vibrator.hasVibrator())
-            vibrator.vibrate(100);
 
-        mReps++;
-        mRepsTextView.setText(mReps + "");
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (vibrator.hasVibrator())
+                    vibrator.vibrate(100);
+
+                mReps++;
+                mRepsTextView.setText(mReps + "");
+            }
+        });
 
     }
 
