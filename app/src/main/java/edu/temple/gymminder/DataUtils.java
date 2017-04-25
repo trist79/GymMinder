@@ -130,12 +130,32 @@ public class DataUtils {
 
     /**
      * @param floats list of floats to be summed
+     * @param end    index at which to stop summation
      * @return the sum of values in floats
      */
-    static float sum(float[] floats) {
+    static float sum(float[] floats, int end) {
         float sum = 0f;
-        for (float f : floats) sum += f;
+        for(int i=0; i<end;i++){
+            sum+=floats[i];
+        }
         return sum;
+    }
+
+    static float sum(float[] floats) {
+        return sum(floats, floats.length);
+    }
+
+    /**
+     *
+     * @param floats    An array of values representing riemann sums
+     * @return          List of partial sums at each value
+     */
+    static float[] partialSums(float[] floats){
+        float[] data = new float[floats.length];
+        for(int i=0; i<floats.length; i++){
+            data[i] = (sum(floats, i+1));
+        }
+        return data;
     }
 
     /**
