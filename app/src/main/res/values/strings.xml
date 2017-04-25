@@ -38,7 +38,8 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="workout_reps_display">" Reps: %1$d"</string>
-    <string name="greeting">Welcome %1$s! Begin, continue, or view a workout below:</string>
+    <string name="greeting">Logged in as %1$s!</string>
+    <string name="greeting2">Begin, continue, or view a workout below:</string>
     <string name="gps_radius">Size</string>
     <string name="longitude">Longitude</string>
     <string name="latitude">Latitude</string>

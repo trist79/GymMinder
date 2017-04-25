@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,28 +43,7 @@ public class SigninFragment extends Fragment {
         v.findViewById(R.id.signinButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(email.getText().toString().equals("")
-                        || password.getText().toString().equals("")
-                        || !email.getText().toString().contains("@")){
-                    Toast.makeText(getActivity(), "Please enter a valid Email and Password.",
-                            Toast.LENGTH_LONG).show();
-                }
-                else{
-                auth.signInWithEmailAndPassword(email.getText().toString(),
-                        password.getText().toString())
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    Log.d("Auth", "Login complete");
-                                    listener.goToMain();
-                                } else {
-                                    Toast.makeText(getActivity(), "Incorrect Email or Password.",
-                                    Toast.LENGTH_LONG).show();
-                                    Log.d("Auth", "Login failed");
-                                }
-                            }
-                        });}
+            signin();
             }
         });
         v.findViewById(R.id.signupButton).setOnClickListener(new View.OnClickListener() {
@@ -92,7 +72,73 @@ public class SigninFragment extends Fragment {
                         });}
             }
         });
+
+
+        email.setOnKeyListener(new View.OnKeyListener()
+        {
+            public boolean onKey(View v, int keyCode, KeyEvent event)
+            {
+                if (event.getAction() == KeyEvent.ACTION_DOWN)
+                {
+                    switch (keyCode)
+                    {
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            signin();
+                            return true;
+                        default:
+                            break;
+                    }
+                }
+                return false;
+            }
+        });
+        password.setOnKeyListener(new View.OnKeyListener()
+        {
+            public boolean onKey(View v, int keyCode, KeyEvent event)
+            {
+                if (event.getAction() == KeyEvent.ACTION_DOWN)
+                {
+                    switch (keyCode)
+                    {
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            signin();
+                            return true;
+                        default:
+                            break;
+                    }
+                }
+                return false;
+            }
+        });
+
         return v;
+    }
+
+    public void signin(){
+        if(email.getText().toString().equals("")
+                || password.getText().toString().equals("")
+                || !email.getText().toString().contains("@")){
+            Toast.makeText(getActivity(), "Please enter a valid Email and Password.",
+                    Toast.LENGTH_LONG).show();
+        }
+        else{
+            auth.signInWithEmailAndPassword(email.getText().toString(),
+                    password.getText().toString())
+                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                Log.d("Auth", "Login complete");
+                                listener.goToMain();
+                            } else {
+                                Toast.makeText(getActivity(), "Incorrect Email or Password.",
+                                        Toast.LENGTH_LONG).show();
+                                Log.d("Auth", "Login failed");
+                            }
+                        }
+                    });}
     }
 
     @Override
