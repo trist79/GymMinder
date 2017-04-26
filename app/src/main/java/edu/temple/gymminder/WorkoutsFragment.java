@@ -68,15 +68,19 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void onResume(){
-        super.onResume();
+    public void onStart() {
+        super.onStart();
         db.retrieveAllWorkouts(auth.getCurrentUser());
+        db.getCatalog();
     }
 
     @Override
-    public void updateUi(Workout workout) {
-
+    public void onResume(){
+        super.onResume();
     }
+
+    @Override
+    public void updateUi(Workout workout) {}
 
     @Override
     public void respondToWorkouts(final ArrayList<Workout> workouts, final ArrayList<String> names) {
@@ -95,8 +99,29 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void onWorkoutAdded() {
+    public void respondToCatalog(final ArrayList<Exercise> exercises) {
+        ListView lv = (ListView) getView().findViewById(R.id.exerciseListView);
 
+        final ArrayList<String> names = new ArrayList<>(exercises.size());
+        for (Exercise e : exercises) {
+            names.add(e.name);
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, names);
+        lv.setAdapter(adapter);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (exercises.get(position) != null)
+                    listener.goToAdHocCreator(exercises, position);
+            }
+        });
+    }
+
+    @Override
+    public void onWorkoutAdded() {
+        ListView lv = (ListView) getView().findViewById(R.id.workoutsList);
+        ArrayAdapter aa = (ArrayAdapter) lv.getAdapter();
+        aa.notifyDataSetChanged();
     }
 
     @Override
@@ -108,6 +133,7 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
     public interface DetailListener {
         void goToWorkoutsDetail(Workout workout, String name);
         void goToWorkoutCreator();
+        void goToAdHocCreator(ArrayList<Exercise> exercises, int selected);
     }
 
 }

@@ -37,7 +37,7 @@ public class DataUtils {
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
-    public static final long POLLING_FREQUENCY = 35;
+    public static final long POLLING_FREQUENCY = 30;
     public static final long POLLING_RATE = SECOND / POLLING_FREQUENCY;
     private static final double PEAK_SIMILARITY_FACTOR = 3;
     private static final long ERROR = 1000;
@@ -196,7 +196,6 @@ public class DataUtils {
      * @param timestamp timestamp of event
      */
     static void process(final float[] values, final long timestamp) {
-
         executorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -667,6 +666,8 @@ public class DataUtils {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
         try {
             String line = reader.readLine();
+            if (line == null)
+                return;
             String[] numbers = line.split(",");
             int i = 0;
             for (String s : numbers) {

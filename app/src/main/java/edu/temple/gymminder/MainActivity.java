@@ -16,6 +16,8 @@ import android.view.View;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.ArrayList;
+
 import edu.temple.gymminder.geofence.GeofenceFragment;
 
 public class MainActivity extends AppCompatActivity
@@ -66,7 +68,7 @@ public class MainActivity extends AppCompatActivity
         if (auth.getCurrentUser() == null) {
             startFragment(new SigninFragment());
         } else if (getIntent().getExtras()!=null) {
-            if (getIntent().getExtras().get(START_FRAGMENT_EXTRA)!=null){
+            if (getIntent().getExtras().get(START_FRAGMENT_EXTRA) != null){
                 handleStartFragmentExtra(getIntent().getExtras());
             }
         } else {
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity
     protected void onNewIntent(Intent intent) {
         Bundle extras = intent.getExtras();
         if(extras!=null) {
-            if(extras.get(START_FRAGMENT_EXTRA)!=null) {
+            if (extras.get(START_FRAGMENT_EXTRA)!=null) {
                 handleStartFragmentExtra(extras);
             }
         }
@@ -143,6 +145,12 @@ public class MainActivity extends AppCompatActivity
     public void goToWorkoutCreator() {
         WorkoutCreatorFragment workoutCreatorFragment = new WorkoutCreatorFragment();
         startFragment(workoutCreatorFragment);
+    }
+
+    @Override
+    public void goToAdHocCreator(ArrayList<Exercise> exercises, int selected) {
+        AdHocCreatorFragment fragment = AdHocCreatorFragment.newInstance(exercises, selected);
+        startFragment(fragment);
     }
 
     public void goToHistory() {

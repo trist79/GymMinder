@@ -5,17 +5,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -35,6 +33,8 @@ import static edu.temple.gymminder.DetailFragment.EXTRA_EXERCISE; //TODO refacto
 public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
 
     public static final int RESULT_REPS = 7073;
+    public static final String ARG_EXERCISES = "ARG_EXERCISES";
+    public static final String ARG_SELECTED_INDEX = "ARG_SELECTED";
 
     BaseAdapter listAdapter;
     ArrayList<Exercise> exercises = new ArrayList<>();
@@ -56,13 +56,59 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
         // Required empty public constructor
     }
 
+    public static AdHocCreatorFragment newInstance(ArrayList<Exercise> exercises, int selected) {
+        AdHocCreatorFragment fragment = new AdHocCreatorFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_EXERCISES, exercises);
+        args.putInt(ARG_SELECTED_INDEX, selected);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        ArrayList<Exercise> exercises = null;
+        // Get exercises from saved instance state or bundle
+        if (savedInstanceState != null) {
+            exercises = (ArrayList<Exercise>) savedInstanceState.getSerializable(ARG_EXERCISES);
+
+        }
+        else  {
+            Bundle args = getArguments();
+            if (args != null) {
+                exercises = (ArrayList<Exercise>) args.getSerializable(ARG_EXERCISES);
+                int selectedIndex = args.getInt(ARG_SELECTED_INDEX);
+                Exercise selectedExercise = exercises.get(selectedIndex);
+                if (selectedExercise != null) {
+                    this.exercises.add(selectedExercise);
+                    Intent intent = new Intent(getContext(), DataActivity.class);
+                    intent.putExtra(EXTRA_EXERCISE, selectedExercise);
+                    startActivityForResult(intent, RESULT_REPS);
+                }
+            }
+        }
+
+        // Populate exercise names
+        if (exercises != null) {
+            exerciseNames = new String[exercises.size()];
+            for (int i = 0; i < exercises.size(); i++)
+                exerciseNames[i] = exercises.get(i).name;
+            return;
+        }
+
+        // No for exercises provided, use empty array
+        exerciseNames = new String[0];
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_ad_hoc_creator, container, false);
-        if(exercises.size()==0) exercises.add(new Exercise(":^)", -99, -99));
+        exercises.add(new Exercise(":^)", -99, -99));
+//        if(exercises.size()==0) exercises.add(new Exercise(":^)", -99, -99));
         listAdapter = new BaseAdapter() {
             @Override
             public int getCount() {
@@ -84,11 +130,11 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                 //TODO view reuse
                 final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(
                         Context.LAYOUT_INFLATER_SERVICE);
-                LinearLayout ll;
+                View view;
                 if(position == getCount()-1) {
-                   ll = (LinearLayout) inflater.inflate(R.layout.item_ad_hoc_creator,
+                    view = inflater.inflate(R.layout.item_ad_hoc_creator,
                             parent, false);
-                    final Spinner spinner = (Spinner) ll.findViewById(R.id.exerciseSpinner);
+                    final Spinner spinner = (Spinner) view.findViewById(R.id.exerciseSpinner);
                     spinner.setAdapter(new BaseAdapter() {
                         @Override
                         public int getCount() {
@@ -138,7 +184,7 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                             }
                         }
                     }
-                    ll.findViewById(R.id.addExerciseButton).setOnClickListener(new View.OnClickListener() {
+                    view.findViewById(R.id.addExerciseButton).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             exercises.add(new Exercise(PLACEHOLDER_STRING, -999, -999));
@@ -149,14 +195,14 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                         }
                     });
                 } else {
-                    ll = (LinearLayout) inflater.inflate(R.layout.item_ad_hoc_completed,
+                    view = inflater.inflate(R.layout.item_ad_hoc_completed,
                             parent, false);
-                    ((TextView) ll.findViewById(R.id.exerciseTextView)).setText(
+                    ((TextView) view.findViewById(R.id.exerciseTextView)).setText(
                             ((Exercise) getItem(position)).name);
-                    ((TextView) ll.findViewById(R.id.repsTextView)).setText(
+                    ((TextView) view.findViewById(R.id.repsTextView)).setText(
                             getString(R.string.workout_reps_display, ((Exercise) getItem(position)).reps));
                 }
-                return ll;
+                return view;
             }
         };
 
@@ -180,10 +226,16 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(ARG_EXERCISES, exercises);
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == RESULT_REPS){
             if(resultCode == Activity.RESULT_OK){
-                int repsDone = data.getIntExtra(DataActivity.EXTRA_REPS_DONE, -1);
+                int repsDone = data.getIntExtra(DataActivity.EXTRA_REPS_DONE, - 2);
                 Exercise exercise = exercises.get(exercises.size()-2);
                 exercise.reps = repsDone;
                 exercise.sets = 1;
@@ -197,24 +249,20 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
     @Override
     public void onAttach(Context c) {
         super.onAttach(c);
-        exerciseNames = getResources().getStringArray(R.array.supported_exercises);
         listener = (Listener) c;
     }
 
     @Override
-    public void updateUi(Workout workout) {
-
-    }
+    public void updateUi(Workout workout) {}
 
     @Override
-    public void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names) {
-
-    }
+    public void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names) {}
 
     @Override
-    public void onWorkoutAdded() {
+    public void respondToCatalog(ArrayList<Exercise> exercises) {}
 
-    }
+    @Override
+    public void onWorkoutAdded() {}
 
     public interface Listener {
         void finishFragment(Fragment f);

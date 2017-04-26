@@ -215,7 +215,12 @@ public class DbHelper {
         parsePath(WorkoutContract.CATALOG).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                listener.updateUi(dataSnapshot.getValue(Workout.class));
+                Workout holder = dataSnapshot.getValue(Workout.class);
+                ArrayList<Exercise> exercises = holder.exercises;
+                for (Exercise e : exercises) {
+                    Log.d("Database", "Exercise name: " + e.name);
+                }
+                listener.respondToCatalog(exercises);
             }
 
             @Override
@@ -249,6 +254,7 @@ public class DbHelper {
     public interface Listener {
         void updateUi(Workout workout);
         void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
+        void respondToCatalog(ArrayList<Exercise> exercises);
         void onWorkoutAdded();
     }
 
