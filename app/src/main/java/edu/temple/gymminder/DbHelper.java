@@ -92,7 +92,7 @@ public class DbHelper {
      * @param user        owner of workout
      * @param date        date workout was completed
      */
-    public void retrieeveWorkoutDate(String workoutName, FirebaseUser user, Date date) {
+    public void retrieveWorkoutDate(String workoutName, FirebaseUser user, Date date) {
         String day = formatDateForWorkout(date);
         parsePath(WorkoutContract.DATED_WORKOUTS, user.getUid(), day, workoutName)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -162,6 +162,8 @@ public class DbHelper {
         });
     }
 
+
+
     public void testRetrieve() {
         parsePath(WorkoutContract.TEST_RETRIEVE).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -207,6 +209,29 @@ public class DbHelper {
         return reference;
     }
 
+    public void getHistory(FirebaseUser user) {
+        parsePath(WorkoutContract.WORKOUT_HISTORY, user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Workout> workouts = new ArrayList<>();
+                //TODO maybe refactor workout definition to include name, so we don't have to do this
+                ArrayList<String> names = new ArrayList<String>();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    workouts.add(ds.getValue(Workout.class));
+                    names.add(ds.getKey());
+                    Log.d("Database", "Workout name: " + ds.getKey());
+                    listener.respondToWorkouts(workouts, names);
+                }
+                Log.d("Database", "Workouts retrieved: " + workouts.size());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
+
     public void getCatalog() {
         parsePath(WorkoutContract.CATALOG).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -240,6 +265,7 @@ public class DbHelper {
         public static final String[] TEST_GET_USER = {USERS, TEST};
         public static final String[] DATED_UNNAMED_WORKOUTS = {USERS, UNNAMED};
         public static final String[] CATALOG = {CATA};
+        public static final String[] WORKOUT_HISTORY = {USERS, DATED};
     }
 
     public interface Listener {

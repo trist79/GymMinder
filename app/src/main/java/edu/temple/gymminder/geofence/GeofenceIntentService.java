@@ -42,7 +42,7 @@ public class GeofenceIntentService extends IntentService {
 
         Notification notification = new Notification.Builder(this)
                 .setContentTitle(getResources().getString(R.string.notification_title))
-                .setSmallIcon(R.drawable.ic_fitness_center_black_24dp)
+                .setSmallIcon(R.drawable.ic_fitness_center)
                 .setContentText(getResources().getString(R.string.notification_content))
                 .setAutoCancel(true)
                 .setContentIntent(PendingIntent.getActivity(this, 0, startIntent, PendingIntent.FLAG_CANCEL_CURRENT))

@@ -63,7 +63,7 @@ public class SigninFragment extends Fragment {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     Log.d("Auth", "Oh Yes");
-                                    listener.goToMain();
+                                    listener.goToWorkouts();
                                 } else {
 
                                     Log.d("Auth", task.getException().getLocalizedMessage());
@@ -131,7 +131,7 @@ public class SigninFragment extends Fragment {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 Log.d("Auth", "Login complete");
-                                listener.goToMain();
+                                listener.goToWorkouts();
                             } else {
                                 Toast.makeText(getActivity(), "Incorrect Email or Password.",
                                         Toast.LENGTH_LONG).show();
@@ -148,7 +148,7 @@ public class SigninFragment extends Fragment {
     }
 
     public interface SigninListener {
-        void goToMain();
+        void goToWorkouts();
     }
 
 }

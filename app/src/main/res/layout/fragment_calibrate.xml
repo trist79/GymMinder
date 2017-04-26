@@ -61,7 +61,7 @@
         app:layout_constraintRight_toRightOf="parent" />
 
     <ProgressBar
-        android:id="@+id/calibrate_progess"
+        android:id="@+id/calibrate_progress"
         style="@android:style/Widget.Material.ProgressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

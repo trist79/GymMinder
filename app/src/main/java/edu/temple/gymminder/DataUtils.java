@@ -61,6 +61,7 @@ public class DataUtils {
         data = dataList;
         timestamps = time;
         processedData = new ArrayList<>(3);
+        peaks = new SparseArray<>();
         for (int i = 0; i < 3; i++) processedData.add(new ArrayList<Float>());
     }
 
@@ -124,11 +125,13 @@ public class DataUtils {
      * @return array of riemann rectangles
      */
     static float[] riemann(List<Float> list) {
-        float[] velocity = new float[list.size() - 1];
+        float[] velocity = new float[list.size()-1];
         Iterator<Float> iterator = list.listIterator();
         int i = 0;
-        while (iterator.hasNext() && timestamps.size() > i + 1) {
-            velocity[i] = iterator.next() * ((timestamps.get(i + 1) - timestamps.get(i)) * MS2S_CONVERSION);
+        while (iterator.hasNext()) {
+            float value = iterator.next();
+            if(!iterator.hasNext()) return velocity;
+            velocity[i] = value;
             i++;
         }
         return velocity;
@@ -203,7 +206,7 @@ public class DataUtils {
             public void run() {
                 int i = majorAxisIndex;
 
-                float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
+                float x = Math.abs(values[i]) > 0.015 ? values[i] : 0;
                 //First time adding a node, just add it lel
                 if (timestamps.size() == 0) {
                     timestamps.add(timestamp);

@@ -105,7 +105,7 @@ public class CalibrateFragment extends Fragment {
         TextView titleTextView = (TextView) v.findViewById(R.id.calibrate_title);
         titleTextView.setText(mExerciseName);
 
-        mProgressBar = (ProgressBar) v.findViewById(R.id.calibrate_progess);
+        mProgressBar = (ProgressBar) v.findViewById(R.id.calibrate_progress);
         mButton = (Button) v.findViewById(R.id.calibrate_button);
         if (mButton != null) {
             mButton.setOnClickListener(new View.OnClickListener() {

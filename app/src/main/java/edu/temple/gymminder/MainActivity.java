@@ -2,25 +2,33 @@ package edu.temple.gymminder;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
 
 import edu.temple.gymminder.geofence.GeofenceFragment;
 
-public class MainActivity extends AppCompatActivity implements SigninFragment.SigninListener,
-        MainFragment.DetailListener, WorkoutCreatorFragment.Listener, AdHocCreatorFragment.Listener{
+public class MainActivity extends AppCompatActivity
+        implements SigninFragment.SigninListener,
+        WorkoutsFragment.DetailListener,
+        WorkoutCreatorFragment.Listener,
+        AdHocCreatorFragment.Listener,
+        HistoryFragment.OnFragmentInteractionListener,
+        AccountFragment.OnFragmentInteractionListener {
 
     public static final String AD_HOC = "Laughing to the bank like ahhHA";
     public static final String START_FRAGMENT_EXTRA = "It was always me vs the world." +
@@ -28,24 +36,49 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
 
     private FirebaseAuth auth;
     private Fragment activeFragment;
+    private BottomNavigationView tabBar;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupAuth();
+
+        tabBar = (BottomNavigationView) findViewById(R.id.navigation);
+        tabBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.navigation_workouts:
+                        goToWorkouts();
+                        return true;
+                    case R.id.navigation_history:
+                        goToHistory();
+                        return true;
+                    case R.id.navigation_account:
+                        goToAccount();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+
         if (BuildConfig.FLAVOR.equals("espresso")) {
             auth.signOut();
             DataUtils.loadRepetitionFile("Bench", this).delete();
+            DataUtils.loadRepetitionFile("Deadlift", this).delete();
+            DataUtils.loadRepetitionFile("Squat", this).delete();
+            DataUtils.loadRepetitionFile("Curl", this).delete();
         }
         if (auth.getCurrentUser() == null) {
             startFragment(new SigninFragment());
-        } else if(getIntent().getExtras()!=null) {
-            if(getIntent().getExtras().get(START_FRAGMENT_EXTRA)!=null){
+        } else if (getIntent().getExtras()!=null) {
+            if (getIntent().getExtras().get(START_FRAGMENT_EXTRA)!=null){
                 handleStartFragmentExtra(getIntent().getExtras());
             }
         } else {
-            goToMain();
+            goToWorkouts();
         }
     }
 
@@ -66,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
                 startFragment(new AdHocCreatorFragment());
                 break;
             default:
-                startFragment(new MainFragment());
+                startFragment(new WorkoutsFragment());
         }
     }
 
@@ -83,9 +116,9 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
             case R.id.signOutOption:
                 auth.signOut();
                 break;
-//            case R.id.geofenceOption:
-//                startFragment(new GeofenceFragment());
-//                break;
+            case R.id.geofenceOption:
+                startFragment(new GeofenceFragment());
+                break;
         }
         return true;
     }
@@ -106,22 +139,39 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         });
     }
 
-    public void goToMain() {
-        startFragment(new MainFragment());
+    public void goToWorkouts() {
+        startFragment(new WorkoutsFragment());
+        tabBar.setVisibility(View.VISIBLE);
+        tabBar.getMenu().findItem(R.id.navigation_workouts).setChecked(true);
     }
 
-    public void goToDetail(Workout workout, String name) {
+    public void goToWorkoutsDetail(Workout workout, String name) {
         DetailFragment detailFragment = DetailFragment.newInstance(workout, name);
         startFragment(detailFragment);
     }
 
+    public void goToWorkoutHistoryDay(Date day){
+        //DayFragment dayFragment = DayFragment.newInstance(day);
+
+    }
+
     public void goToWorkoutCreator() {
         WorkoutCreatorFragment workoutCreatorFragment = new WorkoutCreatorFragment();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainFrame, workoutCreatorFragment)
-                .addToBackStack(null)
-                .commit();
+        startFragment(workoutCreatorFragment);
     }
+
+    public void goToHistory() {
+        startFragment(new HistoryFragment());
+        tabBar.setVisibility(View.VISIBLE);
+        tabBar.getMenu().findItem(R.id.navigation_history).setChecked(true);
+    }
+
+    public void goToAccount() {
+        startFragment(new AccountFragment());
+        tabBar.setVisibility(View.VISIBLE);
+        tabBar.getMenu().findItem(R.id.navigation_account).setChecked(true);
+    }
+
 
     @Override
     public void finishFragment(Fragment f) {
@@ -133,10 +183,15 @@ public class MainActivity extends AppCompatActivity implements SigninFragment.Si
         FragmentTransaction transaction = getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.mainFrame, fragment);
-        if(activeFragment instanceof MainFragment) transaction = transaction.addToBackStack(null);
+        if(activeFragment instanceof WorkoutsFragment) transaction = transaction.addToBackStack(null);
         transaction.commit();
         activeFragment = fragment;
     }
 
 
+    @Override
+    public void onSignOutPressed() {
+        tabBar.setVisibility(View.GONE);
+        auth.signOut();
+    }
 }
