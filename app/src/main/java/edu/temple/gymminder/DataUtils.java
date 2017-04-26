@@ -123,11 +123,13 @@ public class DataUtils {
      * @return array of riemann rectangles
      */
     static float[] riemann(List<Float> list) {
-        float[] velocity = new float[list.size() - 1];
+        float[] velocity = new float[list.size()-1];
         Iterator<Float> iterator = list.listIterator();
         int i = 0;
-        while (iterator.hasNext() && timestamps.size() > i + 1) {
-            velocity[i] = iterator.next() * ((timestamps.get(i + 1) - timestamps.get(i)) * MS2S_CONVERSION);
+        while (iterator.hasNext()) {
+            float value = iterator.next();
+            if(!iterator.hasNext()) return velocity;
+            velocity[i] = value;
             i++;
         }
         return velocity;

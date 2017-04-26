@@ -1,5 +1,9 @@
 package edu.temple.gymminder;
 
+import android.util.SparseArray;
+
+import com.fastdtw.timeseries.TimeSeriesBase;
+
 import org.junit.rules.ExternalResource;
 
 import java.util.ArrayList;
@@ -10,8 +14,8 @@ import java.util.ArrayList;
 
 public class DataUtilsResources extends ExternalResource {
 
-    public final long PERIOD = 10L;
-    public final int S2MS_CONVERSION = 1000000000;
+    public final double PERIOD = 1/10000L;
+    public final int S2MS_CONVERSION = 1000000;
     ArrayList<ArrayList<Float>> data = new ArrayList<>();
     ArrayList<ArrayList<Float>> processed = new ArrayList<>();
     ArrayList<Long> timestamps;
@@ -23,7 +27,7 @@ public class DataUtilsResources extends ExternalResource {
         }
         timestamps = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            timestamps.add(PERIOD * i * S2MS_CONVERSION);
+            timestamps.add((long) PERIOD * i * S2MS_CONVERSION);
         }
         DataUtils.init(data, timestamps, processed);
     }
@@ -47,6 +51,19 @@ public class DataUtilsResources extends ExternalResource {
                 break;
         }
         return peakClass;
+    }
+
+    void setupPeakTimeSeriesAndAxis(){
+        TimeSeriesBase.Builder builder = new TimeSeriesBase.Builder();
+        for(int i=0;i<50;i++){
+            builder = builder.add(0, i);
+        }
+        DataUtils.repTimeSeries = builder.build();
+        DataUtils.repPeak = new DataUtils.Peak(25,0);
+        DataUtils.majorAxisIndex = 0;
+        DataUtils.setListener(null);
+        DataUtils.peaks = new SparseArray<>();
+        DataUtils.init(data, timestamps, processed);
     }
 
 }
