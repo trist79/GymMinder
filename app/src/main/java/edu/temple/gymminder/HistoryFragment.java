@@ -87,6 +87,9 @@ public class HistoryFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
+    public void respondToCatalog(ArrayList<Exercise> exercises) {}
+
+    @Override
     public void onWorkoutAdded() {
 
     }

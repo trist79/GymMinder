@@ -4,7 +4,7 @@
     <string name="title_workouts">Workouts</string>
     <string name="title_exercises">Exercises</string>
     <string name="title_history">History</string>
-    <string name="title_account">Account</string>
+    <string name="title_geofence">Geofencing</string>
     <string name="email_address_hint">Email Address</string>
     <string name="password_hint">Password</string>
     <string name="signin_button">Sign In</string>
@@ -29,6 +29,7 @@
     <string name="set">Set</string>
     <string name="finish_set">Finish Set</string>
     <string name="recalibrate">Recalibrate</string>
+    <string name="add_geofence">Add a Geofence</string>
 
     <array name="supported_exercises">
         <item>Bench Press</item>

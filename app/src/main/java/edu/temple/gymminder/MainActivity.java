@@ -29,8 +29,7 @@ public class MainActivity extends AppCompatActivity
         WorkoutsFragment.DetailListener,
         WorkoutCreatorFragment.Listener,
         AdHocCreatorFragment.Listener,
-        HistoryFragment.OnFragmentInteractionListener,
-        AccountFragment.OnFragmentInteractionListener {
+        HistoryFragment.OnFragmentInteractionListener {
 
     public static final String AD_HOC = "Laughing to the bank like ahhHA";
     public static final String START_FRAGMENT_EXTRA = "It was always me vs the world." +
@@ -57,8 +56,8 @@ public class MainActivity extends AppCompatActivity
                     case R.id.navigation_history:
                         goToHistory();
                         return true;
-                    case R.id.navigation_account:
-                        goToAccount();
+                    case R.id.navigation_geofence:
+                        goToGeofence();
                         return true;
                     default:
                         return false;
@@ -118,9 +117,6 @@ public class MainActivity extends AppCompatActivity
             case R.id.signOutOption:
                 auth.signOut();
                 break;
-            case R.id.geofenceOption:
-                startFragment(new GeofenceFragment());
-                break;
         }
         return true;
     }
@@ -174,10 +170,10 @@ public class MainActivity extends AppCompatActivity
         tabBar.getMenu().findItem(R.id.navigation_history).setChecked(true);
     }
 
-    public void goToAccount() {
-        startFragment(new AccountFragment());
+    public void goToGeofence() {
+        startFragment(new GeofenceFragment());
         tabBar.setVisibility(View.VISIBLE);
-        tabBar.getMenu().findItem(R.id.navigation_account).setChecked(true);
+        tabBar.getMenu().findItem(R.id.navigation_geofence).setChecked(true);
     }
 
 
@@ -196,10 +192,4 @@ public class MainActivity extends AppCompatActivity
         activeFragment = fragment;
     }
 
-
-    @Override
-    public void onSignOutPressed() {
-        tabBar.setVisibility(View.GONE);
-        auth.signOut();
-    }
 }
