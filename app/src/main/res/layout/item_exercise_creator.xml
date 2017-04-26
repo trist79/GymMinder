@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal" android:layout_width="match_parent"
     android:id="@+id/exerciseCreatorItem"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginEnd="16dp"
+    android:layout_marginStart="16dp"
+    android:orientation="horizontal">
 
     <Spinner
+        android:id="@+id/exerciseSpinner"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/exerciseSpinner" />
+        android:layout_height="wrap_content" />
 
     <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/repsEditText"
-        android:inputType="number"
-        android:hint="@string/sets"/>
-
-    <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:hint="@string/sets"
+        android:inputType="number" />
+
+    <EditText
         android:id="@+id/setsEditText"
-        android:inputType="number"
-        android:hint="@string/reps" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/reps"
+        android:inputType="number" />
 
 </LinearLayout>

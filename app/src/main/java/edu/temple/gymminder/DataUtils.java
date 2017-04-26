@@ -202,7 +202,7 @@ public class DataUtils {
             public void run() {
                 int i = majorAxisIndex;
 
-                float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
+                float x = Math.abs(values[i]) > 0.015 ? values[i] : 0;
                 //First time adding a node, just add it lel
                 if (timestamps.size() == 0) {
                     timestamps.add(timestamp);

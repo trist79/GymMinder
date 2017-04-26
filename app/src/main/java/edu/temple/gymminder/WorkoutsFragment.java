@@ -8,10 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TabHost;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -22,14 +22,14 @@ import java.util.ArrayList;
  * Currently handles workout selection, and navigation to workout creator. This is the Fragment shown
  * after the user has been authenticated.
  */
-public class MainFragment extends Fragment implements DbHelper.Listener {
+public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
 
     FirebaseAuth auth = FirebaseAuth.getInstance();
     DbHelper db = DbHelper.newInstance(this);
     DetailListener listener;
 
 
-    public MainFragment() {
+    public WorkoutsFragment() {
         // Required empty public constructor
     }
 
@@ -38,14 +38,29 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_main, container, false);
+        View v = inflater.inflate(R.layout.fragment_workouts, container, false);
+
+        TabHost host = (TabHost) v.findViewById(R.id.tabHost);
+        host.setup();
+
+        //Tab 1
+        TabHost.TabSpec spec = host.newTabSpec(getString(R.string.title_workouts));
+        spec.setContent(R.id.workoutsTab);
+        spec.setIndicator(getString(R.string.title_workouts));
+        host.addTab(spec);
+
+        //Tab 2
+        spec = host.newTabSpec(getString(R.string.title_exercises));
+        spec.setContent(R.id.exercisesTab);
+        spec.setIndicator(getString(R.string.title_exercises));
+        host.addTab(spec);
+
         v.findViewById(R.id.add_workout_fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 listener.goToWorkoutCreator();
             }
         });
-
 
         ((TextView) v.findViewById(R.id.greeting2)).setText(
                 getResources().getString(R.string.greeting2 ));
@@ -68,35 +83,13 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
         ((TextView) getView().findViewById(R.id.workouts)).setText(
                 getResources().getText(R.string.stored_workouts_text));
         ListView lv = (ListView) getView().findViewById(R.id.workoutsList);
-        lv.setAdapter(new BaseAdapter() {
-            @Override
-            public int getCount() {
-                return workouts.size();
-            }
 
-            @Override
-            public Object getItem(int position) {
-                return workouts.get(position);
-            }
-
-            @Override
-            public long getItemId(int position) {
-                return position;
-            }
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                //TODO implement view reuse
-                TextView tv = new TextView(getContext());
-                tv.setText(names.get(position));
-                return tv;
-            }
-        });
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, names);
+        lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                listener.goToDetail((Workout) parent.getAdapter().getItem(position),
-                        names.get(position));
+                listener.goToWorkoutsDetail(workouts.get(position), (String) parent.getAdapter().getItem(position));
             }
         });
     }
@@ -113,7 +106,7 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
     }
 
     public interface DetailListener {
-        void goToDetail(Workout workout, String name);
+        void goToWorkoutsDetail(Workout workout, String name);
         void goToWorkoutCreator();
     }
 

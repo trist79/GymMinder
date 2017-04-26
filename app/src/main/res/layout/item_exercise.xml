@@ -1,38 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal" android:layout_width="match_parent"
     android:id="@+id/exerciseItem"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="16dp">
 
     <LinearLayout
+        android:id="@+id/workoutLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:id="@+id/workoutLayout">
+        android:orientation="vertical">
 
         <TextView
+            android:id="@+id/workoutName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/workoutName"/>
+            android:textAppearance="@android:style/TextAppearance.Material.Title" />
 
         <TextView
+            android:id="@+id/setNumber"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/setNumber" />
+            android:textAppearance="@android:style/TextAppearance.Material.Medium" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end">
+        android:gravity="end"
+        android:orientation="horizontal">
 
         <Button
+            android:id="@+id/startTrackerButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/startTrackerButton"
             android:layout_gravity="end"
-            android:text="@string/start_button_text"/>
+            android:text="@string/start_button_text" />
 
     </LinearLayout>
 </LinearLayout>
