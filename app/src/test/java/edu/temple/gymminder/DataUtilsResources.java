@@ -62,7 +62,6 @@ public class DataUtilsResources extends ExternalResource {
         DataUtils.repPeak = new DataUtils.Peak(25,0);
         DataUtils.majorAxisIndex = 0;
         DataUtils.setListener(null);
-        DataUtils.peaks = new SparseArray<>();
         DataUtils.init(data, timestamps, processed);
     }
 

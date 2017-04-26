@@ -60,6 +60,7 @@ public class DataUtils {
         data = dataList;
         timestamps = time;
         processedData = new ArrayList<>(3);
+        peaks = new SparseArray<>();
         for (int i = 0; i < 3; i++) processedData.add(new ArrayList<Float>());
     }
 
