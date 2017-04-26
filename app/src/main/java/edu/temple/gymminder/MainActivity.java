@@ -108,9 +108,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.signOutOption:
                 auth.signOut();
                 break;
-            case R.id.geofenceOption:
-                startFragment(new GeofenceFragment());
-                break;
+
         }
         return true;
     }
