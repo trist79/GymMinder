@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity
         switch (item.getItemId()){
             case R.id.signOutOption:
                 auth.signOut();
+                tabBar.setVisibility(View.GONE);
                 break;
         }
         return true;
