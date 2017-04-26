@@ -81,7 +81,7 @@ public class HistoryFragment extends Fragment implements DbHelper.Listener {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 listener.goToWorkoutsDetail(workouts.get(position), (String) parent.getAdapter().getItem(position));
                 //listener.goToWorkoutHistoryDay();
-                
+
             }
         });
     }
