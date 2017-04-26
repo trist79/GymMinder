@@ -51,17 +51,15 @@ public class ProcessTest {
 
     @Test
     public void processCorrectlyAddsValuesWithTimestampsLessThanPeriod() throws InterruptedException {
-        
         setupPeakTimeSeriesAndAxis();
         Random random = new Random();
         for(int i=0; i<100; i++){
             float[] values = {random.nextFloat(), random.nextFloat(), random.nextFloat()};
-            DataUtils.process(values, (28571/2)*i);
+            DataUtils.process(values, 28571/2*i);
         }
-
-        
         //Should be 1+floor(99/2)
         //Or 1+floor(100/2), it honestly doesn't matter
+        Thread.sleep(500);
         assertEquals(50, res.timestamps.size(), 1);
         assertEquals(50, res.data.get(0).size(), 1);
         assertEquals(50, res.processed.get(0).size(), 1);
@@ -105,6 +103,7 @@ public class ProcessTest {
             float[] values = {(float) Math.random(), (float) Math.random(), (float) Math.random()};
             DataUtils.process(values, DataUtils.POLLING_RATE*i);
         }
+        Thread.sleep(500);
         ArrayList<Float> data = res.processed.get(DataUtils.majorAxisIndex);
         float[] oldValues = {
                 data.get(data.size()-1),
@@ -118,6 +117,7 @@ public class ProcessTest {
         DataUtils.process(values, DataUtils.POLLING_RATE*51);
         DataUtils.process(values, DataUtils.POLLING_RATE*52);
 
+        Thread.sleep(500);
         float[] newValues = {
                 data.get(data.size()-4),
                 data.get(data.size()-5),
@@ -128,7 +128,6 @@ public class ProcessTest {
             oldValues[3] and newValues[3] should be equal because its window ends as soon as the
             center node is processed. When that happens is the last time it runs through the filter.
          */
-        
         assertNotEquals(oldValues[0], newValues[0], 0.000001);
         assertNotEquals(oldValues[1], newValues[1], 0.000001);
         assertNotEquals(oldValues[2], newValues[2], 0.000001);
@@ -143,15 +142,16 @@ public class ProcessTest {
             float[] values = {(float) Math.random(), (float) Math.random(), (float) Math.random()};
             DataUtils.process(values, DataUtils.POLLING_RATE*i);
         }
+        Thread.sleep(500);
         float oldValue = res.processed.get(DataUtils.majorAxisIndex)
                 .get(res.processed.get(DataUtils.majorAxisIndex).size()-5);
 
         float[] values = {(float) Math.random(), (float) Math.random(), (float) Math.random()};
         DataUtils.process(values, DataUtils.POLLING_RATE*50);
 
+        Thread.sleep(500);
         float newValue = res.processed.get(DataUtils.majorAxisIndex)
                 .get(res.processed.get(DataUtils.majorAxisIndex).size()-6);
-        
         assertEquals(oldValue, newValue, 0.000001);
     }
 
