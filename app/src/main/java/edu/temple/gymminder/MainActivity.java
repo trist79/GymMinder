@@ -62,6 +62,9 @@ public class MainActivity extends AppCompatActivity
         if (BuildConfig.FLAVOR.equals("espresso")) {
             auth.signOut();
             DataUtils.loadRepetitionFile("Bench", this).delete();
+            DataUtils.loadRepetitionFile("Deadlift", this).delete();
+            DataUtils.loadRepetitionFile("Squat", this).delete();
+            DataUtils.loadRepetitionFile("Curl", this).delete();
         }
         if (auth.getCurrentUser() == null) {
             startFragment(new SigninFragment());
@@ -108,7 +111,9 @@ public class MainActivity extends AppCompatActivity
             case R.id.signOutOption:
                 auth.signOut();
                 break;
-
+            case R.id.geofenceOption:
+                startFragment(new GeofenceFragment());
+                break;
         }
         return true;
     }

@@ -35,14 +35,15 @@
             android:enabled="true"
             android:exported="true">
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBge4oyHEkx7nNGRTGLvRvh4sy9mw-0NiM" />
+
 
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD9vnRiQ5S4BsPxc6qNpC3pphpF7NzUS1A" />
     </application>
 
 </manifest>
