@@ -2,6 +2,7 @@ package edu.temple.gymminder;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,9 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
+import java.util.Calendar;
+import java.util.Date;
+
 import edu.temple.gymminder.geofence.GeofenceFragment;
 
 public class MainActivity extends AppCompatActivity
@@ -25,6 +29,7 @@ public class MainActivity extends AppCompatActivity
         WorkoutsFragment.DetailListener,
         WorkoutCreatorFragment.Listener,
         AdHocCreatorFragment.Listener,
+        HistoryFragment.OnFragmentInteractionListener,
         AccountFragment.OnFragmentInteractionListener {
 
     public static final String AD_HOC = "Laughing to the bank like ahhHA";
@@ -64,6 +69,9 @@ public class MainActivity extends AppCompatActivity
         if (BuildConfig.FLAVOR.equals("espresso")) {
             auth.signOut();
             DataUtils.loadRepetitionFile("Bench", this).delete();
+            DataUtils.loadRepetitionFile("Deadlift", this).delete();
+            DataUtils.loadRepetitionFile("Squat", this).delete();
+            DataUtils.loadRepetitionFile("Curl", this).delete();
         }
         if (auth.getCurrentUser() == null) {
             startFragment(new SigninFragment());
@@ -110,7 +118,9 @@ public class MainActivity extends AppCompatActivity
             case R.id.signOutOption:
                 auth.signOut();
                 break;
-
+            case R.id.geofenceOption:
+                startFragment(new GeofenceFragment());
+                break;
         }
         return true;
     }
@@ -142,6 +152,11 @@ public class MainActivity extends AppCompatActivity
         startFragment(detailFragment);
     }
 
+    public void goToWorkoutHistoryDay(Date day){
+        //DayFragment dayFragment = DayFragment.newInstance(day);
+
+    }
+
     public void goToWorkoutCreator() {
         WorkoutCreatorFragment workoutCreatorFragment = new WorkoutCreatorFragment();
         startFragment(workoutCreatorFragment);
@@ -154,6 +169,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void goToHistory() {
+        startFragment(new HistoryFragment());
         tabBar.setVisibility(View.VISIBLE);
         tabBar.getMenu().findItem(R.id.navigation_history).setChecked(true);
     }

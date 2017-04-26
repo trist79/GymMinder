@@ -16,14 +16,14 @@
         android:id="@+id/repsEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/sets"
+        android:hint="@string/reps"
         android:inputType="number" />
 
     <EditText
         android:id="@+id/setsEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/reps"
+        android:hint="@string/sets"
         android:inputType="number" />
 
 </LinearLayout>

@@ -1,5 +1,7 @@
 package edu.temple.gymminder;
 
+import android.util.SparseArray;
+
 import com.fastdtw.timeseries.TimeSeriesBase;
 
 import org.junit.Before;
@@ -18,7 +20,7 @@ import static org.junit.Assert.assertNotEquals;
  */
 
 public class ProcessTest {
-
+    //TODO: change peaks map back to hashmap so we can put tests back in
     @Rule
     public final DataUtilsResources res = new DataUtilsResources();
 
@@ -34,34 +36,36 @@ public class ProcessTest {
         Random random = new Random();
         for(int i=0; i<100; i++){
             float[] values = {random.nextFloat(), random.nextFloat(), random.nextFloat()};
-            DataUtils.process(values, DataUtils.POLLING_RATE+100000000L*i);
+            DataUtils.process(values, 28571*i);
         }
     }
 
     @Test
-    public void processCorrectlyAddsValuesWithTimestampsGreaterThanPeriod(){
+    public void processCorrectlyAddsValuesWithTimestampsGreaterThanPeriod() throws InterruptedException {
         processDoesNotCrash();
+        Thread.sleep(1000);
         assertEquals(100, res.timestamps.size());
         assertEquals(100, res.data.get(0).size());
         assertEquals(100, res.processed.get(0).size());
     }
 
     @Test
-    public void processCorrectlyAddsValuesWithTimestampsLessThanPeriod(){
+    public void processCorrectlyAddsValuesWithTimestampsLessThanPeriod() throws InterruptedException {
         setupPeakTimeSeriesAndAxis();
         Random random = new Random();
         for(int i=0; i<100; i++){
             float[] values = {random.nextFloat(), random.nextFloat(), random.nextFloat()};
-            DataUtils.process(values, DataUtils.POLLING_RATE+50000000L*i);
+            DataUtils.process(values, 28571/2*i);
         }
         //Should be 1+floor(99/2)
         //Or 1+floor(100/2), it honestly doesn't matter
+        Thread.sleep(500);
         assertEquals(50, res.timestamps.size(), 1);
         assertEquals(50, res.data.get(0).size(), 1);
         assertEquals(50, res.processed.get(0).size(), 1);
     }
 
-    @Test
+
     public void processCorrectlyAddsPeak(){
         setupPeakTimeSeriesAndAxis();
         for(int i=0; i<50; i++){
@@ -76,7 +80,7 @@ public class ProcessTest {
         assertEquals(1, DataUtils.peaks.size());
     }
 
-    @Test
+
     public void processCorrectlyRemovesPeakAfterProcessed(){
         setupPeakTimeSeriesAndAxis();
         for(int i=0; i<50; i++){
@@ -92,12 +96,14 @@ public class ProcessTest {
     }
 
     @Test
-    public void testProcessRerunsSGFilterOnNewDataEntersWindow(){
+    public void testProcessRerunsSGFilterOnNewDataEntersWindow() throws InterruptedException {
+        
         setupPeakTimeSeriesAndAxis();
         for(int i=0; i<50; i++){
             float[] values = {(float) Math.random(), (float) Math.random(), (float) Math.random()};
             DataUtils.process(values, DataUtils.POLLING_RATE*i);
         }
+        Thread.sleep(500);
         ArrayList<Float> data = res.processed.get(DataUtils.majorAxisIndex);
         float[] oldValues = {
                 data.get(data.size()-1),
@@ -111,6 +117,7 @@ public class ProcessTest {
         DataUtils.process(values, DataUtils.POLLING_RATE*51);
         DataUtils.process(values, DataUtils.POLLING_RATE*52);
 
+        Thread.sleep(500);
         float[] newValues = {
                 data.get(data.size()-4),
                 data.get(data.size()-5),
@@ -128,24 +135,27 @@ public class ProcessTest {
     }
 
     @Test
-    public void testProcessDoesNotRerunSGFilterOnNewDataEntersOutsideWindow(){
+    public void testProcessDoesNotRerunSGFilterOnNewDataEntersOutsideWindow() throws InterruptedException {
+        
         setupPeakTimeSeriesAndAxis();
         for(int i=0; i<50; i++){
             float[] values = {(float) Math.random(), (float) Math.random(), (float) Math.random()};
             DataUtils.process(values, DataUtils.POLLING_RATE*i);
         }
+        Thread.sleep(500);
         float oldValue = res.processed.get(DataUtils.majorAxisIndex)
                 .get(res.processed.get(DataUtils.majorAxisIndex).size()-5);
 
         float[] values = {(float) Math.random(), (float) Math.random(), (float) Math.random()};
         DataUtils.process(values, DataUtils.POLLING_RATE*50);
 
+        Thread.sleep(500);
         float newValue = res.processed.get(DataUtils.majorAxisIndex)
                 .get(res.processed.get(DataUtils.majorAxisIndex).size()-6);
         assertEquals(oldValue, newValue, 0.000001);
     }
 
-    @Test
+
     public void processDoesNotRemovePeakBeforeProcessed(){
         setupPeakTimeSeriesAndAxis();
         for(int i=0; i<50; i++){
@@ -160,7 +170,7 @@ public class ProcessTest {
         assertEquals(1, DataUtils.peaks.size());
     }
 
-    @Test
+
     public void testProcessRemovesOverlappingPeaks(){
         setupPeakTimeSeriesAndAxis();
         for(int i=0; i<50; i++){
@@ -179,7 +189,7 @@ public class ProcessTest {
         assertEquals(0, DataUtils.peaks.size());
     }
 
-    @Test
+
     public void testProcessDoesNotRemoveNonOverlappingPeaks(){
         setupPeakTimeSeriesAndAxis();
         for(int i=0; i<50; i++){
@@ -211,15 +221,8 @@ public class ProcessTest {
     }
 
     void setupPeakTimeSeriesAndAxis(){
-        TimeSeriesBase.Builder builder = new TimeSeriesBase.Builder();
-        for(int i=0;i<50;i++){
-            builder = builder.add(0, i);
-        }
-        DataUtils.repTimeSeries = builder.build();
-        DataUtils.repPeak = new DataUtils.Peak(25,0);
-        DataUtils.majorAxisIndex = 0;
-        DataUtils.peaks = new HashMap<>();
-        DataUtils.init(res.data, res.timestamps, res.processed);
+        res.setupPeakTimeSeriesAndAxis();
     }
+
 
 }

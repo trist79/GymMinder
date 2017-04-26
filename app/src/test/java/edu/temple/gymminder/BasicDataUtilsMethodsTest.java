@@ -44,7 +44,7 @@ public class BasicDataUtilsMethodsTest {
         }
         float f[] = DataUtils.riemann(data);
         for (int i = 0; i < 9; i++) {
-            assertEquals(res.PERIOD, f[i], .1);
+            assertEquals(1, f[i], .1);
         }
     }
 
@@ -55,7 +55,7 @@ public class BasicDataUtilsMethodsTest {
             data.add(1f);
         }
         float f = DataUtils.sum(DataUtils.riemann(data));
-        assertEquals(res.PERIOD * 9, f, 1);
+        assertEquals(9, f, 1);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class BasicDataUtilsMethodsTest {
         }
         float f[] = DataUtils.riemann(data);
         for (int i = 0; i < 9; i++) {
-            assertEquals(i * res.PERIOD, f[i], .1);
+            assertEquals(i, f[i], .1);
         }
     }
 
@@ -77,7 +77,7 @@ public class BasicDataUtilsMethodsTest {
             data.add(1f * i);
         }
         float f = DataUtils.sum(DataUtils.riemann(data));
-        assertEquals(360, f, 1);
+        assertEquals(36, f, 1);
     }
 
     @Test
