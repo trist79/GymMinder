@@ -2,7 +2,6 @@ package edu.temple.gymminder;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -148,13 +147,10 @@ public class DbHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
-                //TODO maybe refactor workout definition to include name, so we don't have to do this
-                ArrayList<String> names = new ArrayList<String>();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     workouts.add(ds.getValue(Workout.class));
-                    names.add(ds.getKey());
                     Log.d("Database", "Workout name: " + ds.getKey());
-                    listener.respondToWorkouts(workouts, names);
+                    listener.respondToWorkouts(workouts);
                 }
                 Log.d("Database", "Workouts retrieved: " + workouts.size());
             }
@@ -248,7 +244,7 @@ public class DbHelper {
 
     public interface Listener {
         void updateUi(Workout workout);
-        void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
+        void respondToWorkouts(ArrayList<Workout> workouts);
         void onWorkoutAdded();
     }
 

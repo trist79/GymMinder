@@ -23,11 +23,9 @@ public class DbHelperStub extends DbHelper {
         ArrayList<Workout> workouts = new ArrayList<>();
         ArrayList<Exercise> exercises = new ArrayList<>();
         exercises.add(new Exercise("Bench", 3, 3));
-        workouts.add(new Workout(exercises));
-        ArrayList<String> names = new ArrayList<>();
-        names.add("hey p3p");
+        workouts.add(new Workout("hey p3p", exercises));
         if(listener!=null) {
-            listener.respondToWorkouts(workouts, names);
+            listener.respondToWorkouts(workouts);
         }
     }
 
@@ -37,7 +35,7 @@ public class DbHelperStub extends DbHelper {
         exercises.add(new Exercise("Curls", -1, -1));
         exercises.add(new Exercise("Bench", -1, -1));
         exercises.add(new Exercise("Squat", -1, -1));
-        Workout workout = new Workout(exercises);
+        Workout workout = new Workout("catalog", exercises);
         if(listener!=null) {
             listener.updateUi(workout);
         }

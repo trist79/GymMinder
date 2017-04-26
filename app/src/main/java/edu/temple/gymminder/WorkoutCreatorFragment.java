@@ -190,8 +190,9 @@ public class WorkoutCreatorFragment extends Fragment {
             public void onClick(View v) {
                 DbHelper dbHelper = DbHelper.newInstance(null);
                 //TODO error checking for no input values in one of the exercise fields
-                dbHelper.addNewWorkout(new Workout(exercises, true),
-                        ((EditText) getView().findViewById(R.id.workoutNameEditText)).getText().toString(),
+                String workoutName = ((EditText) getView().findViewById(R.id.workoutNameEditText)).getText().toString();
+                dbHelper.addNewWorkout(new Workout(workoutName, exercises, true),
+                        workoutName,
                         FirebaseAuth.getInstance().getCurrentUser());
                 listener.finishFragment(self);
             }

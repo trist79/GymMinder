@@ -6,16 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -27,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import static edu.temple.gymminder.DetailFragment.EXTRA_EXERCISE; //TODO refactor to DataActivity
+import static edu.temple.gymminder.DetailFragment.EXTRA_EXERCISE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -169,7 +165,7 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
                     if(e.reps > 0) newExercises.add(e);
                 }
                 if(newExercises.size() > 0){
-                    DbHelper.newInstance(null).addWorkout(new Workout(newExercises), "ad hoc",
+                    DbHelper.newInstance(null).addWorkout(new Workout("placeholder", newExercises), "ad hoc",
                             FirebaseAuth.getInstance().getCurrentUser(),
                             Calendar.getInstance().getTime());
                 }
@@ -207,7 +203,7 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
     }
 
     @Override
-    public void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names) {
+    public void respondToWorkouts(ArrayList<Workout> workouts) {
 
     }
 

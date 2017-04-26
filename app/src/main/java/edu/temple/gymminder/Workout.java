@@ -10,15 +10,19 @@ import java.util.ArrayList;
 public class Workout implements Serializable {
     ArrayList<Exercise> exercises;
 
+    private String workoutName;
+
     public Workout() {
 
     }
 
-    public Workout(ArrayList<Exercise> exercises) {
+    public Workout(String name, ArrayList<Exercise> exercises) {
+        this.workoutName = name;
         this.exercises = exercises;
     }
 
-    public Workout(ArrayList<Exercise> exercises, boolean errorCheck) {
+    public Workout(String name, ArrayList<Exercise> exercises, boolean errorCheck) {
+        this.workoutName = name;
         for (Exercise e : exercises) {
             if (e.name.length() > 50 || e.reps <= 0 || e.sets <= 0) exercises.remove(e);
         }
@@ -33,6 +37,14 @@ public class Workout implements Serializable {
         }
         res = res.substring(0, res.length() - 1);
         return res;
+    }
+
+    public String getWorkoutName() {
+        return workoutName;
+    }
+
+    public void setWorkoutName(String workoutName) {
+        this.workoutName = workoutName;
     }
 
 

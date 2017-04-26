@@ -61,7 +61,7 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void respondToWorkouts(final ArrayList<Workout> workouts, final ArrayList<String> names) {
+    public void respondToWorkouts(final ArrayList<Workout> workouts) {
         ((TextView) getView().findViewById(R.id.workouts)).setText(
                 getResources().getText(R.string.stored_workouts_text));
         ListView lv = (ListView) getView().findViewById(R.id.workoutsList);
@@ -85,7 +85,7 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
             public View getView(int position, View convertView, ViewGroup parent) {
                 //TODO implement view reuse
                 TextView tv = new TextView(getContext());
-                tv.setText(names.get(position));
+                tv.setText(workouts.get(position).getWorkoutName());
                 return tv;
             }
         });
@@ -93,7 +93,7 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 listener.goToDetail((Workout) parent.getAdapter().getItem(position),
-                        names.get(position));
+                        workouts.get(position).getWorkoutName());
             }
         });
     }

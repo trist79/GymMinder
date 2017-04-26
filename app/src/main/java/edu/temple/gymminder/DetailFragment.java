@@ -139,7 +139,7 @@ public class DetailFragment extends Fragment {
                 for (int i = 0; i < lv.getAdapter().getCount(); i++) {
                     exercises.add((Exercise) lv.getAdapter().getItem(i));
                 }
-                dbHelper.addWorkout(new Workout(exercises),
+                dbHelper.addWorkout(new Workout(workoutName, exercises),
                         workoutName != null ? workoutName : PLACEHOLDER_WORKOUT,
                         FirebaseAuth.getInstance().getCurrentUser(),
                         Calendar.getInstance().getTime());
