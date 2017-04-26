@@ -24,6 +24,12 @@ public class DataActivity extends AppCompatActivity implements
     public final static String EXTRA_REPS_DONE = "We smoked the last one an hour ago";
     public final static String EXTRA_MAX_VELOCITY = "Cathy I'm lost";
     public final static String EXTRA_AVG_VELOCITY = "I don't know why";
+    private static final String EXTRA_COMPLETED_EXERCISE = "Nobody move there's blood on the floor" +
+            "and I" +
+            "can't" +
+            "find" +
+            "my" +
+            "heart";
 
     private Exercise mExercise;
     private ArrayList<ArrayList<Float>> data;
@@ -69,15 +75,25 @@ public class DataActivity extends AppCompatActivity implements
         finish();
     }
 
-    void result(int reps) {
+    void result(int reps, ArrayList<Float> data){
+        ArrayList<Integer> completed = new ArrayList<>(1);
+        completed.add(reps);
+        float[] f = DataUtils.maxAndAvg(
+                DataUtils.partialSums(
+                        DataUtils.riemann(data)));
+
+        Exercise exercise = new Exercise(mExercise.name, 1, reps, completed, 1);
+        exercise.setStream(data);
+
         Intent intent = new Intent();
-        float[] f = DataUtils.maxAndAvg(DataUtils.riemann(data.get(2)));
-        intent.putExtra(EXTRA_REPS_DONE, reps);
-        intent.putExtra(EXTRA_MAX_VELOCITY, f[0]);
+        intent.putExtra(EXTRA_COMPLETED_EXERCISE, exercise);
         intent.putExtra(EXTRA_AVG_VELOCITY, f[1]);
+        intent.putExtra(EXTRA_MAX_VELOCITY, f[0]);
+        intent.putExtra(EXTRA_REPS_DONE, reps);
         this.setResult(RESULT_OK, intent);
         finish();
     }
+
 
     public void goToExerciseData() {
         getSupportFragmentManager().beginTransaction()
@@ -106,7 +122,12 @@ public class DataActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void didFinish(int reps, int mv, int av, ArrayList<ArrayList<Float>> data) {
-        result(reps, mv, av);
+    public void requestRecalibration() {
+        goToCalibrate();
+    }
+
+    @Override
+    public void didFinish(int reps, ArrayList<Float> data) {
+        result(reps, data);
     }
 }

@@ -80,6 +80,30 @@ public class BasicDataUtilsMethodsTest {
         assertEquals(360, f, 1);
     }
 
+    @Test
+    public void testSumWithEndIndex(){
+        float floats[] = new float[20];
+        for(int i=0; i<20; i++){
+            floats[i] = i;
+        }
+        int sum = 0;
+        for(int i=0; i<20; i++){
+            assertEquals(sum, DataUtils.sum(floats, i), 0.00001);
+            sum+=i;
+        }
+    }
+
+    @Test
+    public void testPartialSums(){
+        float floats[] = new float[20];
+        for(int i=0; i<20; i++){
+            floats[i] = i;
+        }
+        float sums[] = {0, 1, 3, 6,10,15,21,28,36,45, 55,66,78,91,105,120,136,153,171,190};
+        float partials[] = DataUtils.partialSums(floats);
+        assertArrayEquals(sums, partials, 0.000001f);
+    }
+
     @Mock
     BufferedReader reader;
 

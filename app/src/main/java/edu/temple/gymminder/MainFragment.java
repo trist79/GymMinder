@@ -11,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -44,8 +45,10 @@ public class MainFragment extends Fragment implements DbHelper.Listener {
                 listener.goToWorkoutCreator();
             }
         });
-        ((TextView) v.findViewById(R.id.greeting)).setText(
-                getResources().getString(R.string.greeting ,auth.getCurrentUser().getEmail()));
+
+
+        ((TextView) v.findViewById(R.id.greeting2)).setText(
+                getResources().getString(R.string.greeting2 ));
         return v;
     }
 

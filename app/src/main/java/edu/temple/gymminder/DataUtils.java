@@ -224,7 +224,6 @@ public class DataUtils {
                 TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
                 for (int j = 0; j < processedData.get(i).size(); j++)
                     builder = builder.add(j, processedData.get(i).get(j));
-
                 TimeSeries t1 = builder.build();
                 DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
                 int peakIndex = peaks.get(processedData.get(i).size()).index;
@@ -239,6 +238,7 @@ public class DataUtils {
                         if (peaks.containsKey(j)) peaks.remove(j);
                     }
                 }
+
             }
 
         }
@@ -612,7 +612,6 @@ public class DataUtils {
      */
     public static boolean accept(DetectedBounds bounds) {
         //TODO logistic regression to find coefficients
-        Log.d("bounds", "dst: " + bounds.dst + ", max: " + bounds.max + ", min: " + bounds.min + ", sd: " + bounds.sd + ", rms: " + bounds.rms + ", dur: " + bounds.dur);
         final double b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
         double res = b0 + (b1 * bounds.dst) + (b2 * bounds.max) + (b3 * bounds.min) + (b4 * bounds.sd)
                 + (b5 * bounds.rms) + (b6 * bounds.dur);

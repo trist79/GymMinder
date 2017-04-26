@@ -19,11 +19,16 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.fastdtw.timeseries.TimeSeries;
+import com.fastdtw.timeseries.TimeSeriesBase;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -51,7 +56,7 @@ public class CalibrateFragment extends Fragment {
     private ArrayList<Long> timestamps;
 
     // UI
-    private ProgressBar mProgessBar;
+    private ProgressBar mProgressBar;
     private Button mButton;
     private ButtonState mButtonState = ButtonState.START;
 
@@ -101,7 +106,7 @@ public class CalibrateFragment extends Fragment {
         TextView titleTextView = (TextView) v.findViewById(R.id.calibrate_title);
         titleTextView.setText(mExerciseName);
 
-        mProgessBar = (ProgressBar) v.findViewById(R.id.calibrate_progess);
+        mProgressBar = (ProgressBar) v.findViewById(R.id.calibrate_progess);
         mButton = (Button) v.findViewById(R.id.calibrate_button);
         if (mButton != null) {
             mButton.setOnClickListener(new View.OnClickListener() {
@@ -123,13 +128,18 @@ public class CalibrateFragment extends Fragment {
     public void onButtonPressed() {
 
         switch (mButtonState) {
+            case REDO:
+                xValues.clear();
+                yValues.clear();
+                zValues.clear();
+                timestamps.clear();
             case START:
                 mButton.setText(R.string.done_calibration);
                 mButtonState = ButtonState.STOP;
 
                 // Animate and show the progress bar
-                mProgessBar.animate();
-                mProgessBar.setVisibility(View.VISIBLE);
+                mProgressBar.animate();
+                mProgressBar.setVisibility(View.VISIBLE);
 
                 setupSensor();
                 break;
@@ -138,7 +148,7 @@ public class CalibrateFragment extends Fragment {
                 mButtonState = ButtonState.REDO;
 
                 // Hide the progress bar
-                mProgessBar.setVisibility(View.INVISIBLE);
+                mProgressBar.setVisibility(View.INVISIBLE);
 
                 mSensorManager.unregisterListener(mSensorListener);
                 break;
@@ -165,7 +175,7 @@ public class CalibrateFragment extends Fragment {
             public void onAccuracyChanged(Sensor sensor, int accuracy) {}
         };
 
-        mSensorManager.registerListener(mSensorListener, sensor, 10000);
+        mSensorManager.registerListener(mSensorListener, sensor, (int) DataUtils.POLLING_RATE);
     }
 
     void process() {
@@ -180,18 +190,41 @@ public class CalibrateFragment extends Fragment {
 
             // Find the major axis among the three
             int majorAxisIndex = DataUtils.detectMajorAxis(axes);
+            List<Float> filtered = DataUtils.applySavitzkyGolayFilter(axes.get(majorAxisIndex));
+
+            // Build a time series to use for peak detection
+            TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+            int i = 0;
+            for (Float val : filtered) {
+                builder.add(i++, val);
+            }
+            TimeSeries timeSeries = builder.build();
+
+            // Find the peak of the rep
+            ArrayList<DataUtils.Peak> peaks = DataUtils.zScorePeakDetection(timeSeries);
+            DataUtils.Peak peak;
+            if (peaks.size() > 0) {
+                // use the peak with the max value
+                peak = peaks.get(0);
+                for (DataUtils.Peak p : peaks) {
+                    if (p.amplitude > peak.amplitude)
+                        peak = p;
+                }
+            } else {
+                // TODO: Tell the user to redo the rep, it wasn't good enough to find a peak
+                return;
+            }
 
             // Write first line (amplitudes)
-            for (Float val : axes.get(majorAxisIndex)) {
+            for (Float val : filtered) {
                 sb.append(val);
                 sb.append(",");
             }
             writer.append(sb.toString());
             writer.newLine();
 
-            // TODO: Find and write peak info as second line
             // Write second line (peak info)
-            writer.write(0 + "," + 0.0);
+            writer.write(peak.index + "," + peak.amplitude);
             writer.newLine();
 
             // Write third line (index of major axis)

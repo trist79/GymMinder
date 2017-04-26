@@ -14,7 +14,7 @@
     <string name="start">Start</string>
     <string name="calibrate_title">Calibrate</string>
     <string name="calibrate_msg">You need to calibrate your device before you can begin this exercise.</string>
-    <string name="calibrate_instructions">To calibrate your device for this workout, press \"Start Calibration\" and perform three reps of the exercise to the best of your ability, focusing on proper form. Press \"Done Calibration\" when complete.</string>
+    <string name="calibrate_instructions">To calibrate your device for this workout, press \"Start Calibration\" and perform a rep of the exercise to the best of your ability, focusing on proper form. Press \"Done Calibration\" when complete.</string>
     <string name="start_calibration">Start Calibration</string>
     <string name="done_calibration">Done Calibration</string>
     <string name="redo_calibration">Redo Calibration</string>
@@ -23,6 +23,7 @@
     <string name="repetition">Repetition</string>
     <string name="set">Set</string>
     <string name="finish_set">Finish Set</string>
+    <string name="recalibrate">Recalibrate</string>
 
     <array name="supported_exercises">
         <item>Bench Press</item>
@@ -38,7 +39,8 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="workout_reps_display">" Reps: %1$d"</string>
-    <string name="greeting">Welcome %1$s! Begin, continue, or view a workout below:</string>
+    <string name="greeting">Logged in as %1$s!</string>
+    <string name="greeting2">Begin, continue, or view a workout below:</string>
     <string name="gps_radius">Size</string>
     <string name="longitude">Longitude</string>
     <string name="latitude">Latitude</string>
