@@ -1,13 +1,5 @@
 package edu.temple.gymminder;
 
-import com.fastdtw.dtw.FastDTW;
-import com.fastdtw.dtw.WarpPath;
-import com.fastdtw.timeseries.TimeSeries;
-import com.fastdtw.timeseries.TimeSeriesBase;
-import com.fastdtw.util.Distances;
-
-import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,13 +8,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 /**

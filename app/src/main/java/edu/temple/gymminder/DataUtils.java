@@ -2,6 +2,7 @@ package edu.temple.gymminder;
 
 import android.content.Context;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
@@ -17,9 +18,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by rober_000 on 2/10/2017.
@@ -29,13 +31,13 @@ public class DataUtils {
 
     //TODO: Refactor at least data processing part to instantiated class
 
-    public static final float MS2S_CONVERSION = 1.0f / 1000000000.0f;
-    public static final long SECOND = 1000000000;
+    public static final float MS2S_CONVERSION = 1.0f / 1000000.0f;
+    public static final long SECOND = 1000000;
     public static final float[] SG_FILTER = {-2, 3, 6, 7, 6, 3, -2};
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
-    public static final long POLLING_FREQUENCY = 10;
+    public static final long POLLING_FREQUENCY = 35;
     public static final long POLLING_RATE = SECOND / POLLING_FREQUENCY;
     private static final double PEAK_SIMILARITY_FACTOR = 3;
     private static final long ERROR = 1000;
@@ -44,11 +46,14 @@ public class DataUtils {
     private static ArrayList<ArrayList<Float>> data;
     private static ArrayList<ArrayList<Float>> processedData;
     private static ArrayList<Long> timestamps;
-    public static HashMap<Integer, Peak> peaks = new HashMap<>();
+    public static SparseArray<Peak> peaks = new SparseArray<>();
 
     public static Peak repPeak;
     public static TimeSeries repTimeSeries;
     public static int majorAxisIndex;
+    public static ClassifierCoefficients coefs;
+
+    private static ExecutorService executorService;
 
     private static Listener listener;
 
@@ -69,7 +74,7 @@ public class DataUtils {
         init(dataList, time, processedDataList);
         try {
             loadRepetitionPatternTimeSeries(new BufferedReader(new FileReader(file)));
-            peaks = new HashMap<>((int) (EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index)));
+            peaks = new SparseArray<>((int) (EXPANSION_VALUE * (repTimeSeries.size() - repPeak.index)));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -77,10 +82,12 @@ public class DataUtils {
 
     static void setListener(Listener l) {
         listener = l;
+        executorService = Executors.newSingleThreadExecutor();
     }
 
     //Need this to prevent possible memory leak
     static void removeListener() {
+        executorService.shutdownNow();
         listener = null;
     }
 
@@ -129,12 +136,32 @@ public class DataUtils {
 
     /**
      * @param floats list of floats to be summed
+     * @param end    index at which to stop summation
      * @return the sum of values in floats
      */
-    static float sum(float[] floats) {
+    static float sum(float[] floats, int end) {
         float sum = 0f;
-        for (float f : floats) sum += f;
+        for(int i=0; i<end;i++){
+            sum+=floats[i];
+        }
         return sum;
+    }
+
+    static float sum(float[] floats) {
+        return sum(floats, floats.length);
+    }
+
+    /**
+     *
+     * @param floats    An array of values representing riemann sums
+     * @return          List of partial sums at each value
+     */
+    static float[] partialSums(float[] floats){
+        float[] data = new float[floats.length];
+        for(int i=0; i<floats.length; i++){
+            data[i] = (sum(floats, i+1));
+        }
+        return data;
     }
 
     /**
@@ -169,79 +196,86 @@ public class DataUtils {
      * @param values    event values
      * @param timestamp timestamp of event
      */
-    static void process(float[] values, long timestamp) {
-        int i = majorAxisIndex;
+    static void process(final float[] values, final long timestamp) {
 
-        float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
-        //First time adding a node, just add it lel
-        if (timestamps.size() == 0) {
-            timestamps.add(timestamp);
-            data.get(i).add(x);
-            processedData.get(i).add(x);
-            return;
-        }
-        float duration = (timestamp - timestamps.get(timestamps.size() - 1)) * MS2S_CONVERSION;
-        long longDuration = timestamp - timestamps.get(timestamps.size()-1);
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                int i = majorAxisIndex;
 
-        if ((longDuration + ERROR) < POLLING_RATE || avgNode != null) {
-            //average the points with sum node
-            avgNode = average(avgNode, x, duration);
-            duration = avgNode[1];
-            x = avgNode[0];
-        }
-        if ((longDuration + ERROR) >= PERIOD) {
-            //We can approximate timestamp value by adding .1s to previous value
-            //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
-            timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
-            data.get(i).add(x);
-            int size = processedData.get(i).size();
-            for (int j = size; j >= size - (SG_FILTER.length / 2 ) && j > 0; j--) {
+                float x = Math.abs(values[i]) > 0.009 ? values[i] : 0;
+                //First time adding a node, just add it lel
+                if (timestamps.size() == 0) {
+                    timestamps.add(timestamp);
+                    data.get(i).add(x);
+                    processedData.get(i).add(x);
+                    return;
+                }
+                float duration = (timestamp - timestamps.get(timestamps.size() - 1)) * MS2S_CONVERSION;
+                long longDuration = timestamp - timestamps.get(timestamps.size()-1);
+
+                if ((longDuration + ERROR) < POLLING_RATE || avgNode != null) {
+                    //average the points with sum node
+                    avgNode = average(avgNode, x, duration);
+                    duration = avgNode[1];
+                    x = avgNode[0];
+                }
+                if ((longDuration + ERROR) >= PERIOD) {
+                    //We can approximate timestamp value by adding .1s to previous value
+                    //Maybe not the best idea since it (maybe) causes drift when we interpolate, idk :d
+                    timestamps.add(timestamps.get(timestamps.size() - 1) + POLLING_RATE);
+                    data.get(i).add(x);
+                    int size = processedData.get(i).size();
+                    for (int j = size; j >= size - (SG_FILTER.length / 2 ) && j > 0; j--) {
                 /*
                     We want to re-process any data points that didn't have enough data to the right
                     for the entire filter to run on. The alternative to this is to delay the signal
                     by waiting until we have enough data points for the entire filter.
                  */
-                applySGFilterRealtime(j, data.get(i), processedData.get(i));
-            }
-            avgNode = null;
-            Peak newPeak = detectPeak(size, 1);
-            //TODO: Probably want to put this in a thread that enqueues new peaks to check
-            if (newPeak != null) {
+                        applySGFilterRealtime(j, data.get(i), processedData.get(i));
+                    }
+                    avgNode = null;
+                    Peak newPeak = detectPeak(size, 1);
+                    //TODO: Probably want to put this in a thread that enqueues new peaks to check
+                    if (newPeak != null) {
                     /*
                         The key for our HashMap is the index of the new peak, which is the current
                         size of processedData at the time of insertion, plus the difference between
                         the size of repTimeSeries and the index of repPeak multiplied by
                         EXPANSION_VALUE.
                      */
-                peaks.put((int) (newPeak.index + EXPANSION_VALUE *
-                        (repTimeSeries.size() - repPeak.index)), newPeak);
-            }
-            if (peaks.containsKey(processedData.get(i).size())) {
+                        peaks.put((int) (newPeak.index + EXPANSION_VALUE *
+                                (repTimeSeries.size() - repPeak.index)), newPeak);
+                    }
+                    if (peaks.get(processedData.get(i).size()) != null) {
                     /*
                         Because we used an index for our HashMap key value, we can use the
                         current index to detect if any peaks are ready to be examined
                      */
-                TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
-                for (int j = 0; j < processedData.get(i).size(); j++)
-                    builder = builder.add(j, processedData.get(i).get(j));
-                TimeSeries t1 = builder.build();
-                DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
-                int peakIndex = peaks.get(processedData.get(i).size()).index;
-                peaks.remove(processedData.get(i).size());
-                if (accept(bounds)) {
+                        TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
+                        for (int j = 0; j < processedData.get(i).size(); j++)
+                            builder = builder.add(j, processedData.get(i).get(j));
+                        TimeSeries t1 = builder.build();
+                        DetectedBounds bounds = detectBounds(t1, peaks.get(processedData.get(i).size()));
+                        int peakIndex = peaks.get(processedData.get(i).size()).index;
+                        peaks.remove(processedData.get(i).size());
+                        if (accept(bounds)) {
                         /*
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
-                    if (listener != null) listener.respondToRep();
-                    for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
-                        if (peaks.containsKey(j)) peaks.remove(j);
+                            Log.d("bounds", "dst: " + bounds.dst + " min: " + bounds.min + " max: " + bounds.max + " sd: " + bounds.sd + " rms: " + bounds.rms + " dur: " + bounds.dur);
+                            if (listener != null) listener.respondToRep();
+                            for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
+                                if (peaks.get(j) != null) peaks.remove(j);
+                            }
+                        }
+
                     }
+
                 }
-
             }
-
-        }
+        });
 
     }
 
@@ -265,7 +299,7 @@ public class DataUtils {
     public static int detectMajorAxis(ArrayList<ArrayList<Float>> axes) {
         float maxDifference = 0;
         int index = 0;
-        
+
         // Check the difference between the min and max values for each axis
         // TODO: Add reference reps and change algorithm to use min DTW distance to reference
         int i = 0;
@@ -612,10 +646,12 @@ public class DataUtils {
      */
     public static boolean accept(DetectedBounds bounds) {
         //TODO logistic regression to find coefficients
-        final double b0 = 0, b1 = 1, b2 = 1, b3 = 1, b4 = 1, b5 = 1, b6 = 1;
-        double res = b0 + (b1 * bounds.dst) + (b2 * bounds.max) + (b3 * bounds.min) + (b4 * bounds.sd)
+        final double b0 = coefs.coefpure, b1 = coefs.coefdst, b2 = coefs.coefmin, b3 = coefs.coefmax, b4 = coefs.coefsd, b5 = coefs.coefrms, b6 = coefs.coefdur;
+        double res = b0 + (b1 * bounds.dst) + (b3 * bounds.max) + (b2 * bounds.min) + (b4 * bounds.sd)
                 + (b5 * bounds.rms) + (b6 * bounds.dur);
-        return 1 / (1 + Math.exp(-1.0 * res)) >= .5;
+        double p = 1 / (1 + Math.exp(-1.0 * res));
+        Log.d("p", "" + p);
+        return p >= .5;
     }
 
     public static File loadRepetitionFile(String exerciseName, Context context) {
@@ -654,6 +690,13 @@ public class DataUtils {
             line = reader.readLine();
             majorAxisIndex = Integer.parseInt(line);
 
+            line = reader.readLine();
+            String[] commaSeparated = line.split(", ");
+            double[] coefVals = new double[commaSeparated.length];
+            for (int j=0; j < commaSeparated.length; j++) {
+                coefVals[j] = Double.parseDouble(commaSeparated[j]);
+            }
+            coefs = new ClassifierCoefficients(coefVals);
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -671,9 +714,10 @@ public class DataUtils {
      * e   - end time of the repetition
      * dur - duration of the repetition, calculated as e - s
      */
-    private static class DetectedBounds {
+    static class DetectedBounds {
         double dst, max, min, sd, rms, dur;
         int s, e;
+        private static final int NUMBOUNDS = 6;
 
         public DetectedBounds(int s, int e, double dst, double max, double min, double sd, double rms) {
             this.s = s;
@@ -685,11 +729,22 @@ public class DataUtils {
             this.rms = rms;
             this.dur = e - s;
         }
+
+        public double[] getAsArray() {
+            double[] retval = new double[6];
+            retval[0] = dst;
+            retval[1] = min;
+            retval[2] = max;
+            retval[3] = sd;
+            retval[4] = rms;
+            retval[5]  = dur;
+            return retval;
+        }
     }
 
     public static class Peak {
-        float amplitude;
         int index;
+        float amplitude;
 
         public Peak(int index, float amplitude) {
             this.index = index;

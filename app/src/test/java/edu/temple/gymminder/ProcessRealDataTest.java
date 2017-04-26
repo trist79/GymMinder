@@ -1,7 +1,8 @@
 package edu.temple.gymminder;
 
+import android.util.SparseArray;
+
 import com.fastdtw.timeseries.TimeSeries;
-import com.fastdtw.timeseries.TimeSeriesBase;
 
 import org.junit.Test;
 
@@ -10,8 +11,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -35,7 +34,7 @@ public class ProcessRealDataTest extends ProcessTest {
         DataUtils.repTimeSeries = series;
         DataUtils.repPeak = peak;
         DataUtils.majorAxisIndex = index;
-        DataUtils.peaks = new HashMap<>();
+        DataUtils.peaks = new SparseArray<>();
         DataUtils.init(res.data, res.timestamps, res.processed);
     }
 

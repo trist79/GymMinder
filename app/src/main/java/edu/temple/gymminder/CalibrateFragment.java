@@ -26,7 +26,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -168,7 +167,7 @@ public class CalibrateFragment extends Fragment {
                 yValues.add(event.values[1]);
                 zValues.add(event.values[2]);
                 timestamps.add(event.timestamp);
-                Log.d("calibration", "sensing");
+                //Log.d("calibration", "sensing");
             }
 
             @Override
@@ -180,6 +179,7 @@ public class CalibrateFragment extends Fragment {
 
     void process() {
         File f = DataUtils.loadRepetitionFile(mExerciseName, getContext());
+        Log.d("ttp", "trust the process");
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(f));
             StringBuilder sb = new StringBuilder();
@@ -203,6 +203,7 @@ public class CalibrateFragment extends Fragment {
             // Find the peak of the rep
             ArrayList<DataUtils.Peak> peaks = DataUtils.zScorePeakDetection(timeSeries);
             DataUtils.Peak peak;
+            ClassifierCoefficients coefs;
             if (peaks.size() > 0) {
                 // use the peak with the max value
                 peak = peaks.get(0);
@@ -210,8 +211,22 @@ public class CalibrateFragment extends Fragment {
                     if (p.amplitude > peak.amplitude)
                         peak = p;
                 }
+                DataUtils.repPeak = peak;
+                DataUtils.repTimeSeries = timeSeries;
+                DataUtils.DetectedBounds goodBounds = DataUtils.detectBounds(timeSeries, peak);
+                ArrayList<DataUtils.DetectedBounds> badBounds = new ArrayList<>(peaks.size()-1);
+                for (DataUtils.Peak p : peaks) {
+                    if (p != peak) {
+                        badBounds.add(DataUtils.detectBounds(timeSeries, p));
+                    }
+                }
+                Log.d("bounds", "dst: " + goodBounds.dst + " min: " + goodBounds.min + " max: " + goodBounds.max + " sd: " + goodBounds.sd + " rms: " + goodBounds.rms + " dur: " + goodBounds.dur);
+                ArrayList<DataUtils.DetectedBounds> gb = new ArrayList<>();
+                gb.add(goodBounds);
+                coefs = ClassifierCoefficients.generateCoefficients(gb, badBounds);
             } else {
                 // TODO: Tell the user to redo the rep, it wasn't good enough to find a peak
+                Log.d("nopeak", "couldn't detect peak, try again");
                 return;
             }
 
@@ -229,6 +244,14 @@ public class CalibrateFragment extends Fragment {
 
             // Write third line (index of major axis)
             writer.write(majorAxisIndex + "");
+            writer.newLine();
+
+            //write fourth line (coefficients)
+            StringBuilder coefsBuilder = new StringBuilder(String.valueOf(coefs.getCoefficientAtIndex(0)));
+            for (int j=1; j < ClassifierCoefficients.NUMCOEFFICIENTS; j++) {
+                coefsBuilder.append(", ").append(coefs.getCoefficientAtIndex(j));
+            }
+            writer.write(coefsBuilder.toString());
 
             writer.close();
             if (mListener != null) {

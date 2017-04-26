@@ -1,5 +1,7 @@
 package edu.temple.gymminder;
 
+import android.util.SparseArray;
+
 import com.fastdtw.timeseries.TimeSeriesBase;
 
 import org.junit.Before;
@@ -7,7 +9,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
@@ -218,7 +219,7 @@ public class ProcessTest {
         DataUtils.repTimeSeries = builder.build();
         DataUtils.repPeak = new DataUtils.Peak(25,0);
         DataUtils.majorAxisIndex = 0;
-        DataUtils.peaks = new HashMap<>();
+        DataUtils.peaks = new SparseArray<>();
         DataUtils.init(res.data, res.timestamps, res.processed);
     }
 
