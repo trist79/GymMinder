@@ -3,6 +3,7 @@ package edu.temple.gymminder;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,12 @@ import java.util.Map;
 public class HistoryFragment extends Fragment implements DbHelper.Listener {
 
 
+
+
+    public ArrayList<String> workoutsNames2;
+    ArrayList<Workout> workouts2;
+    public int q = 0;
+    public boolean q1 = false;
     FirebaseAuth auth = FirebaseAuth.getInstance();
     DbHelper db = DbHelper.newInstance(this);
     WorkoutsFragment.DetailListener listener;
@@ -55,6 +62,7 @@ public class HistoryFragment extends Fragment implements DbHelper.Listener {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
+            listener = (WorkoutsFragment.DetailListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -104,31 +112,38 @@ public class HistoryFragment extends Fragment implements DbHelper.Listener {
         }
 
 
-
+        q = -1;
+        q1 = false;
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, names2);
+
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //listener.goToWorkoutsDetail(workouts.get(position), (String) parent.getAdapter().getItem(position));
                 ListView lv = (ListView) getView().findViewById(R.id.historylist);
-                ArrayList<String> workoutsNames2 = new ArrayList<String>();
-                ArrayList<Workout> workouts2 = new ArrayList<Workout>();
+                if(q1){
+                    listener.goToWorkoutsDetail(workouts2.get(position), workoutsNames2.get(position));
+                }
+                else{
+
+
+                workoutsNames2 = new ArrayList<String>();
+                workouts2 = new ArrayList<Workout>();
                 //for (Workout workout1 : workouts){
                     for(int i = 0; i<workouts.size(); i++){
                         if(names.get(position).equals(dates.get(workoutNames.get(i)))){
                             workoutsNames2.add(workoutNames.get(i));
+                            workouts2.add(workouts.get(i));
                         }
-                        //db.retrieveWorkoutDate(workoutNames.get(i), db.getHistory(auth.getCurrentUser()), names.get(position));
-                    //retrieveWorkoutDate(String workoutName, FirebaseUser user, Date date)
-                    //if()
+
                 }
-                //ArrayAdapter<Workout> adapter = new ArrayAdapter<Workout>(getActivity(), android.R.layout.simple_list_item_1, workouts);
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, workoutsNames2);
 
-                lv.setAdapter(adapter);
-                //listener.goToWorkoutHistoryDay();
 
+
+            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, workoutsNames2);
+            q1 = true;
+            lv.setAdapter(adapter);
             }
         });
     }
