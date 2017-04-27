@@ -68,6 +68,13 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        db.retrieveAllWorkouts(auth.getCurrentUser());
+        db.getCatalog();
+    }
+
+    @Override
     public void onResume(){
         super.onResume();
         db.retrieveAllWorkouts(auth.getCurrentUser());
@@ -94,6 +101,30 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 listener.goToWorkoutsDetail(workouts.get(position), (String) parent.getAdapter().getItem(position));
+            }
+        });
+    }
+
+    @Override
+    public void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates) {
+
+    }
+
+    @Override
+    public void respondToCatalog(final ArrayList<Exercise> exercises) {
+        ListView lv = (ListView) getView().findViewById(R.id.exerciseListView);
+
+        final ArrayList<String> names = new ArrayList<>(exercises.size());
+        for (Exercise e : exercises) {
+            names.add(e.name);
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, names);
+        lv.setAdapter(adapter);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (exercises.get(position) != null)
+                    listener.goToAdHocCreator(exercises, position);
             }
         });
     }

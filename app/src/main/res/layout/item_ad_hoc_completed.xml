@@ -3,18 +3,19 @@
     android:id="@+id/exerciseCreatorItem"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginEnd="16dp"
-    android:layout_marginStart="16dp"
-    android:orientation="horizontal">
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/exerciseTextView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Material.Title" />
 
     <TextView
         android:id="@+id/repsTextView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Material.Large" />
 
 </LinearLayout>

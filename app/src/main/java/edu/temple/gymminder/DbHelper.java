@@ -2,6 +2,7 @@ package edu.temple.gymminder;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -15,6 +16,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by rober_000 on 1/31/2017.
@@ -147,10 +151,13 @@ public class DbHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
+                //TODO maybe refactor workout definition to include name, so we don't have to do this
+                ArrayList<String> names = new ArrayList<String>();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     workouts.add(ds.getValue(Workout.class));
+                    names.add(ds.getKey());
                     Log.d("Database", "Workout name: " + ds.getKey());
-                    listener.respondToWorkouts(workouts);
+                    listener.respondToWorkouts(workouts, names);
                 }
                 Log.d("Database", "Workouts retrieved: " + workouts.size());
             }
@@ -214,11 +221,23 @@ public class DbHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
+                Map<String, String> dates = new HashMap<String, String>();;
+
+
+                //TODO maybe refactor workout definition to include name, so we don't have to do this
+                ArrayList<String> names = new ArrayList<String>();
+                ArrayList<String> workoutNames = new ArrayList<>();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    workouts.add(ds.getValue(Workout.class));
-                    Log.d("Database", "Workout name: " + ds.getKey());
-                    listener.respondToWorkouts(workouts);
+                    for (DataSnapshot ds2 : ds.getChildren()) {
+                        workouts.add(ds2.getValue(Workout.class));
+                        workoutNames.add(ds2.getKey());
+                        Log.d("Database", "Workout name: " + ds2.getKey());
+                        dates.put(ds2.getKey(), ds.getKey());
+                    }
+                    names.add(ds.getKey());
                 }
+
+                listener.respondToHistory(workouts, names, workoutNames, dates);
                 Log.d("Database", "Workouts retrieved: " + workouts.size());
             }
 
@@ -233,7 +252,12 @@ public class DbHelper {
         parsePath(WorkoutContract.CATALOG).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                listener.updateUi(dataSnapshot.getValue(Workout.class));
+                Workout holder = dataSnapshot.getValue(Workout.class);
+                ArrayList<Exercise> exercises = holder.exercises;
+                for (Exercise e : exercises) {
+                    Log.d("Database", "Exercise name: " + e.name);
+                }
+                listener.respondToCatalog(exercises);
             }
 
             @Override
@@ -267,7 +291,9 @@ public class DbHelper {
 
     public interface Listener {
         void updateUi(Workout workout);
-        void respondToWorkouts(ArrayList<Workout> workouts);
+        void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
+        void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates);
+        void respondToCatalog(ArrayList<Exercise> exercises);
         void onWorkoutAdded();
     }
 

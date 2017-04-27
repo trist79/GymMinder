@@ -11,7 +11,7 @@
         android:title="@string/title_history" />
 
     <item
-        android:id="@+id/navigation_account"
-        android:icon="@drawable/ic_account_circle"
-        android:title="@string/title_account" />
+        android:id="@+id/navigation_geofence"
+        android:icon="@drawable/ic_gps_fixed"
+        android:title="@string/title_geofence" />
 </menu>

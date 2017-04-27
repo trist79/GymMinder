@@ -16,16 +16,16 @@ public class DbHelperStub extends DbHelper {
         super(listener);
     }
 
-
-
     @Override
     public void retrieveAllWorkouts(FirebaseUser user) {
         ArrayList<Workout> workouts = new ArrayList<>();
         ArrayList<Exercise> exercises = new ArrayList<>();
         exercises.add(new Exercise("Bench", 3, 3));
-        workouts.add(new Workout("hey p3p", exercises));
+        workouts.add(new Workout(exercises));
+        ArrayList<String> names = new ArrayList<>();
+        names.add("hey p3p");
         if(listener!=null) {
-            listener.respondToWorkouts(workouts);
+            listener.respondToWorkouts(workouts, names);
         }
     }
 
@@ -35,9 +35,8 @@ public class DbHelperStub extends DbHelper {
         exercises.add(new Exercise("Curls", -1, -1));
         exercises.add(new Exercise("Bench", -1, -1));
         exercises.add(new Exercise("Squat", -1, -1));
-        Workout workout = new Workout("catalog", exercises);
-        if(listener!=null) {
-            listener.updateUi(workout);
+        if (listener!=null) {
+            listener.respondToCatalog(exercises);
         }
     }
 

@@ -16,10 +16,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -37,9 +37,9 @@ public class DataUtils {
     public static final float FILTER_SUM = sum(SG_FILTER);
     private static final float PERIOD = .1f;
     private static final double EXPANSION_VALUE = 1.5;
-    public static final long POLLING_FREQUENCY = 35;
+    public static final long POLLING_FREQUENCY = 30;
     public static final long POLLING_RATE = SECOND / POLLING_FREQUENCY;
-    private static final double PEAK_SIMILARITY_FACTOR = 3;
+    private static final double PEAK_SIMILARITY_FACTOR = 1.5;
     private static final long ERROR = 1000;
 
     private static float[] avgNode = null;
@@ -269,20 +269,14 @@ public class DataUtils {
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
-                            if (!coefsTrained) {
-                                Log.d("training", "we trainawn");
-                                coefsBuilder.addGoodBounds(bounds);
-                            }
-                            Log.d("goodbounds", "dst: " + bounds.dst + " min: " + bounds.min + " max: " + bounds.max + " sd: " + bounds.sd + " rms: " + bounds.rms + " dur: " + bounds.dur);
                             if (listener != null) listener.respondToRep();
                             for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
                                 if (peaks.get(j) != null) peaks.remove(j);
                             }
-                        } else {
-                            Log.d("badbounds", "dst: " + bounds.dst + " min: " + bounds.min + " max: " + bounds.max + " sd: " + bounds.sd + " rms: " + bounds.rms + " dur: " + bounds.dur);
-                            coefsBuilder.addBadBounds(bounds);
                         }
+
                     }
+
                 }
             }
         });
@@ -309,7 +303,7 @@ public class DataUtils {
     public static int detectMajorAxis(ArrayList<ArrayList<Float>> axes) {
         float maxDifference = 0;
         int index = 0;
-
+        
         // Check the difference between the min and max values for each axis
         // TODO: Add reference reps and change algorithm to use min DTW distance to reference
         int i = 0;
@@ -692,7 +686,7 @@ public class DataUtils {
      * time distance apart. The second line contains Peak information containing the index of the
      * peak in the stream, and the amplitude of the peak. The last line contains the index of the
      * major axis.
-     * @param bufferedReader    reader from which to read the TimeSeries and Peak data.
+     * @param reader    reader from which to read the TimeSeries and Peak data.
      */
     public static void loadRepetitionPatternTimeSeries(BufferedReader bufferedReader) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();

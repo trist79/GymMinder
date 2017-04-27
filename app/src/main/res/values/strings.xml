@@ -4,7 +4,7 @@
     <string name="title_workouts">Workouts</string>
     <string name="title_exercises">Exercises</string>
     <string name="title_history">History</string>
-    <string name="title_account">Account</string>
+    <string name="title_geofence">Geofencing</string>
     <string name="email_address_hint">Email Address</string>
     <string name="password_hint">Password</string>
     <string name="signin_button">Sign In</string>
@@ -14,7 +14,7 @@
     <string name="start_button_text">start</string>
     <string name="save_workout_text">Save workout results</string>
     <string name="stored_workouts_text">\nSaved Workouts:</string>
-
+    <string name="select_exercise_prompt">Select an Exercise</string>
     <string name="finish">Finish</string>
     <string name="start">Start</string>
     <string name="calibrate_title">Calibrate</string>
@@ -29,6 +29,7 @@
     <string name="set">Set</string>
     <string name="finish_set">Finish Set</string>
     <string name="recalibrate">Recalibrate</string>
+    <string name="add_geofence">Add a Geofence</string>
 
     <array name="supported_exercises">
         <item>Bench Press</item>
@@ -43,7 +44,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="workout_reps_display">" Reps: %1$d"</string>
+    <string name="workout_reps_display">"Reps: %1$d"</string>
     <string name="greeting">Logged in as %1$s!</string>
     <string name="greeting2">Begin, continue, or view a workout below:</string>
     <string name="gps_radius">Size</string>
