@@ -29,6 +29,10 @@ public class Workout implements Serializable {
         this.exercises = exercises;
     }
 
+    public Workout(ArrayList<Exercise> exercises) {
+        this.exercises = exercises;
+    }
+
     @Override
     public String toString() {
         String res = "";

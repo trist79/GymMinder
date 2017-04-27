@@ -3,25 +3,18 @@ package edu.temple.gymminder;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.Map;
 
 
@@ -81,7 +74,7 @@ public class HistoryFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names) {
+    public void respondToWorkouts(ArrayList<Workout> workouts) {
 
     }
 
@@ -92,8 +85,12 @@ public class HistoryFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void respondToHistory(final ArrayList<Workout> workouts, final ArrayList<String> names, final ArrayList<String> workoutNames, final Map<String, String> dates) {
+    public void respondToHistory(final ArrayList<Workout> workouts, final ArrayList<String> names, final Map<String, String> dates) {
         ListView lv = (ListView) getView().findViewById(R.id.historylist);
+        final ArrayList<String> workoutNames = new ArrayList<>(workouts.size());
+        for (Workout w : workouts) {
+            workoutNames.add(w.getWorkoutName());
+        }
         ArrayList<String> names2 = new ArrayList<String>();
         for(String x : names){
             String[] y = x.split("\\s+");

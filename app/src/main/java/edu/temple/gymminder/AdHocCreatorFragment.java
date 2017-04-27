@@ -258,10 +258,10 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
     public void updateUi(Workout workout) {}
 
     @Override
-    public void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names) {}
+    public void respondToWorkouts(ArrayList<Workout> workouts) {}
 
     @Override
-    public void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates) {
+    public void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, Map<String, String> dates) {
 
     }
 

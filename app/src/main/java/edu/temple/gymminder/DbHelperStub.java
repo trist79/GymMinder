@@ -25,7 +25,7 @@ public class DbHelperStub extends DbHelper {
         ArrayList<String> names = new ArrayList<>();
         names.add("hey p3p");
         if(listener!=null) {
-            listener.respondToWorkouts(workouts, names);
+            listener.respondToWorkouts(workouts);
         }
     }
 

@@ -2,7 +2,6 @@ package edu.temple.gymminder;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -16,7 +15,6 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -157,7 +155,7 @@ public class DbHelper {
                     workouts.add(ds.getValue(Workout.class));
                     names.add(ds.getKey());
                     Log.d("Database", "Workout name: " + ds.getKey());
-                    listener.respondToWorkouts(workouts, names);
+                    listener.respondToWorkouts(workouts);
                 }
                 Log.d("Database", "Workouts retrieved: " + workouts.size());
             }
@@ -237,7 +235,7 @@ public class DbHelper {
                     names.add(ds.getKey());
                 }
 
-                listener.respondToHistory(workouts, names, workoutNames, dates);
+                listener.respondToHistory(workouts, names, dates);
                 Log.d("Database", "Workouts retrieved: " + workouts.size());
             }
 
@@ -291,8 +289,8 @@ public class DbHelper {
 
     public interface Listener {
         void updateUi(Workout workout);
-        void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
-        void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates);
+        void respondToWorkouts(ArrayList<Workout> workouts);
+        void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, Map<String, String> dates);
         void respondToCatalog(ArrayList<Exercise> exercises);
         void onWorkoutAdded();
     }

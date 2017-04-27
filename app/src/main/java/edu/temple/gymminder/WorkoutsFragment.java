@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
-
+import java.util.Map;
 
 /**
  * Currently handles workout selection, and navigation to workout creator. This is the Fragment shown
@@ -106,7 +106,7 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates) {
+    public void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, Map<String, String> dates) {
 
     }
 
@@ -143,6 +143,7 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
     public interface DetailListener {
         void goToWorkoutsDetail(Workout workout, String name);
         void goToWorkoutCreator();
+        void goToAdHocCreator(ArrayList<Exercise> e, int p);
     }
 
 }
