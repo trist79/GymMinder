@@ -8,6 +8,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,6 +19,9 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static android.content.Context.VIBRATOR_SERVICE;
@@ -135,6 +139,25 @@ public class ExerciseDataFragment extends Fragment implements DataUtils.Listener
     private void finish() {
         mSensorManager.unregisterListener(mSensorListener);
         DataUtils.removeListener();
+        if (!DataUtils.coefsTrained) {
+            Log.d("training", "training");
+            ClassifierCoefficients cc = DataUtils.coefsBuilder.build();
+            if (cc != null) {
+                StringBuilder builder = new StringBuilder().append(cc.getCoefficientAtIndex(0));
+                for (int i=1; i < ClassifierCoefficients.NUMCOEFFICIENTS; i++) {
+                    builder.append(", ").append(cc.getCoefficientAtIndex(i));
+                }
+                Log.d("coefs", builder.toString());
+                File f = DataUtils.loadRepetitionFile(mExercise.name, this.getContext());
+                try (FileWriter fw = new FileWriter(f)) {
+                    fw.append('\n');
+                    fw.append(builder);
+                    Log.d("training", "we trained");
+                } catch (IOException e) {
+                    Log.d("e", e.getLocalizedMessage());
+                }
+            }
+        }
         mListener.didFinish(mReps, data.get(DataUtils.majorAxisIndex));
     }
 

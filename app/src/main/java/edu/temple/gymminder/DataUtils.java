@@ -16,10 +16,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,6 +52,8 @@ public class DataUtils {
     public static TimeSeries repTimeSeries;
     public static int majorAxisIndex;
     public static ClassifierCoefficients coefs;
+    public static ClassifierCoefficients.Builder coefsBuilder;
+    public static boolean coefsTrained;
 
     private static ExecutorService executorService;
 
@@ -267,15 +269,20 @@ public class DataUtils {
                             This was a valid repetition, so we want to vibrate and remove any
                             potential peaks that we now know are contained within the repetition
                          */
-                            Log.d("bounds", "dst: " + bounds.dst + " min: " + bounds.min + " max: " + bounds.max + " sd: " + bounds.sd + " rms: " + bounds.rms + " dur: " + bounds.dur);
+                            if (!coefsTrained) {
+                                Log.d("training", "we trainawn");
+                                coefsBuilder.addGoodBounds(bounds);
+                            }
+                            Log.d("goodbounds", "dst: " + bounds.dst + " min: " + bounds.min + " max: " + bounds.max + " sd: " + bounds.sd + " rms: " + bounds.rms + " dur: " + bounds.dur);
                             if (listener != null) listener.respondToRep();
                             for (int j = processedData.get(i).size() + 1; j < (processedData.get(i).size() + 1 + (bounds.e - peakIndex)); j++) {
                                 if (peaks.get(j) != null) peaks.remove(j);
                             }
+                        } else {
+                            Log.d("badbounds", "dst: " + bounds.dst + " min: " + bounds.min + " max: " + bounds.max + " sd: " + bounds.sd + " rms: " + bounds.rms + " dur: " + bounds.dur);
+                            coefsBuilder.addBadBounds(bounds);
                         }
-
                     }
-
                 }
             }
         });
@@ -649,7 +656,24 @@ public class DataUtils {
      */
     public static boolean accept(DetectedBounds bounds) {
         //TODO logistic regression to find coefficients
-        final double b0 = coefs.coefpure, b1 = coefs.coefdst, b2 = coefs.coefmin, b3 = coefs.coefmax, b4 = coefs.coefsd, b5 = coefs.coefrms, b6 = coefs.coefdur;
+        double b0, b1, b2, b3, b4, b5, b6;
+        if (coefsTrained) {
+            b0 = coefs.coefpure;
+            b1 = coefs.coefdst;
+            b2 = coefs.coefmin;
+            b3 = coefs.coefmax;
+            b4 = coefs.coefsd;
+            b5 = coefs.coefrms;
+            b6 = coefs.coefdur;
+        } else {
+            b0 = 0;
+            b1 = 1;
+            b2 = 1;
+            b3 = 1;
+            b4 = 1;
+            b5 = 1;
+            b6 = 1;
+        }
         double res = b0 + (b1 * bounds.dst) + (b3 * bounds.max) + (b2 * bounds.min) + (b4 * bounds.sd)
                 + (b5 * bounds.rms) + (b6 * bounds.dur);
         double p = 1 / (1 + Math.exp(-1.0 * res));
@@ -668,12 +692,12 @@ public class DataUtils {
      * time distance apart. The second line contains Peak information containing the index of the
      * peak in the stream, and the amplitude of the peak. The last line contains the index of the
      * major axis.
-     * @param reader    reader from which to read the TimeSeries and Peak data.
+     * @param bufferedReader    reader from which to read the TimeSeries and Peak data.
      */
-    public static void loadRepetitionPatternTimeSeries(BufferedReader reader) {
+    public static void loadRepetitionPatternTimeSeries(BufferedReader bufferedReader) {
         TimeSeriesBase.Builder builder = TimeSeriesBase.builder();
-        try {
-            String line = reader.readLine();
+        try (Scanner reader = new Scanner(bufferedReader)) {
+            String line = reader.nextLine();
             String[] numbers = line.split(",");
             int i = 0;
             for (String s : numbers) {
@@ -685,24 +709,29 @@ public class DataUtils {
                 }
             }
 
-            line = reader.readLine();
+            line = reader.nextLine();
             numbers = line.split(",");
             repPeak = new Peak(Integer.parseInt(numbers[0]), Float.parseFloat(numbers[1]));
             repTimeSeries = builder.build();
 
-            line = reader.readLine();
+            line = reader.nextLine();
             majorAxisIndex = Integer.parseInt(line);
 
-            line = reader.readLine();
-            String[] commaSeparated = line.split(", ");
-            double[] coefVals = new double[commaSeparated.length];
-            for (int j=0; j < commaSeparated.length; j++) {
-                coefVals[j] = Double.parseDouble(commaSeparated[j]);
+            if (reader.hasNextLine()) {
+                line = reader.nextLine();
+                String[] commaSeparated = line.split(", ");
+                double[] coefVals = new double[commaSeparated.length];
+                for (int j=0; j < commaSeparated.length; j++) {
+                    coefVals[j] = Double.parseDouble(commaSeparated[j]);
+                }
+                coefs = new ClassifierCoefficients(coefVals);
+                coefsTrained = true;
+                coefsBuilder = null;
+            } else {
+                coefs = null;
+                coefsTrained = false;
+                coefsBuilder = new ClassifierCoefficients.Builder();
             }
-            coefs = new ClassifierCoefficients(coefVals);
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -720,7 +749,6 @@ public class DataUtils {
     static class DetectedBounds {
         double dst, max, min, sd, rms, dur;
         int s, e;
-        private static final int NUMBOUNDS = 6;
 
         public DetectedBounds(int s, int e, double dst, double max, double min, double sd, double rms) {
             this.s = s;

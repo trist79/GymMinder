@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -47,6 +47,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:2.0.57-beta'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
+    compile files('libs/wekaSTRIPPED.jar')
 }
 
 

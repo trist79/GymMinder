@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -71,9 +70,13 @@ public class HistoryFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void respondToWorkouts(final ArrayList<Workout> workouts, final ArrayList<String> names) {
+    public void respondToWorkouts(final ArrayList<Workout> workouts) {
         ListView lv = (ListView) getView().findViewById(R.id.historylist);
 
+        ArrayList<String> names = new ArrayList<>(workouts.size());
+        for (Workout w : workouts) {
+            names.add(w.getWorkoutName());
+        }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, names);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {

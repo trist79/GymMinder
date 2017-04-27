@@ -79,11 +79,15 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
     }
 
     @Override
-    public void respondToWorkouts(final ArrayList<Workout> workouts, final ArrayList<String> names) {
+    public void respondToWorkouts(final ArrayList<Workout> workouts) {
         ((TextView) getView().findViewById(R.id.workouts)).setText(
                 getResources().getText(R.string.stored_workouts_text));
         ListView lv = (ListView) getView().findViewById(R.id.workoutsList);
 
+        final ArrayList<String> names = new ArrayList<>(workouts.size());
+        for (Workout w : workouts) {
+            names.add(w.getWorkoutName());
+        }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, names);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
