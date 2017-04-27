@@ -92,18 +92,21 @@ public class DetailFragment extends Fragment {
                 ((TextView) item.findViewById(R.id.workoutName)).setText(exercise.toString());
                 final TextView setProgress = (TextView) item.findViewById(R.id.setNumber);
                 setProgress.setText(getString(R.string.sets_progress, 0, exercise.sets));
-                item.findViewById(R.id.startTrackerButton).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (exercise.setsDone >= exercise.sets) return;
-
-                        setProgress.setText(getString(R.string.sets_progress,
-                                ++exercise.setsDone, exercise.sets));
-                        Intent intent = new Intent(getContext(), DataActivity.class);
-                        intent.putExtra(EXTRA_EXERCISE, exercise);
-                        startActivityForResult(intent, RESULT_REPS);
-                    }
-                });
+                Button startButton = (Button) item.findViewById(R.id.startTrackerButton);
+                if (exercise.setsDone >= exercise.sets)
+                    startButton.setVisibility(View.INVISIBLE);
+                else {
+                    startButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            setProgress.setText(getString(R.string.sets_progress,
+                                    ++exercise.setsDone, exercise.sets));
+                            Intent intent = new Intent(getContext(), DataActivity.class);
+                            intent.putExtra(EXTRA_EXERCISE, exercise);
+                            startActivityForResult(intent, RESULT_REPS);
+                        }
+                    });
+                }
                 return item;
             }
         });
