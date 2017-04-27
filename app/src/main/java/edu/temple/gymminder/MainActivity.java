@@ -77,6 +77,8 @@ public class MainActivity extends AppCompatActivity
         } else if (getIntent().getExtras()!=null) {
             if (getIntent().getExtras().get(START_FRAGMENT_EXTRA) != null){
                 handleStartFragmentExtra(getIntent().getExtras());
+            } else {
+                goToWorkouts();
             }
         } else {
             goToWorkouts();
