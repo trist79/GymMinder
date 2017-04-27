@@ -16,6 +16,8 @@ import android.widget.TextView;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Map;
 
 
 /**
@@ -96,6 +98,11 @@ public class WorkoutsFragment extends Fragment implements DbHelper.Listener {
                 listener.goToWorkoutsDetail(workouts.get(position), (String) parent.getAdapter().getItem(position));
             }
         });
+    }
+
+    @Override
+    public void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates) {
+
     }
 
     @Override

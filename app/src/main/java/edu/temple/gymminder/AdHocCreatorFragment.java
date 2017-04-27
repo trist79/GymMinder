@@ -24,6 +24,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Dictionary;
+import java.util.Map;
 
 import static edu.temple.gymminder.DetailFragment.EXTRA_EXERCISE; //TODO refactor to DataActivity
 
@@ -257,6 +259,11 @@ public class AdHocCreatorFragment extends Fragment implements DbHelper.Listener{
 
     @Override
     public void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names) {}
+
+    @Override
+    public void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates) {
+
+    }
 
     @Override
     public void respondToCatalog(ArrayList<Exercise> exercises) {}

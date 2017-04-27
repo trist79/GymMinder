@@ -16,6 +16,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by rober_000 on 1/31/2017.
@@ -218,14 +221,23 @@ public class DbHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Workout> workouts = new ArrayList<>();
+                Map<String, String> dates = new HashMap<String, String>();;
+
+
                 //TODO maybe refactor workout definition to include name, so we don't have to do this
                 ArrayList<String> names = new ArrayList<String>();
+                ArrayList<String> workoutNames = new ArrayList<>();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    workouts.add(ds.getValue(Workout.class));
+                    for (DataSnapshot ds2 : ds.getChildren()) {
+                        workouts.add(ds2.getValue(Workout.class));
+                        workoutNames.add(ds2.getKey());
+                        Log.d("Database", "Workout name: " + ds2.getKey());
+                        dates.put(ds2.getKey(), ds.getKey());
+                    }
                     names.add(ds.getKey());
-                    Log.d("Database", "Workout name: " + ds.getKey());
-                    listener.respondToWorkouts(workouts, names);
                 }
+
+                listener.respondToHistory(workouts, names, workoutNames, dates);
                 Log.d("Database", "Workouts retrieved: " + workouts.size());
             }
 
@@ -280,6 +292,7 @@ public class DbHelper {
     public interface Listener {
         void updateUi(Workout workout);
         void respondToWorkouts(ArrayList<Workout> workouts, ArrayList<String> names);
+        void respondToHistory(ArrayList<Workout> workouts, ArrayList<String> names, ArrayList<String> workoutNames, Map<String, String> dates);
         void respondToCatalog(ArrayList<Exercise> exercises);
         void onWorkoutAdded();
     }
