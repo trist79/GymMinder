@@ -1,7 +1,5 @@
 package edu.temple.gymminder;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -129,15 +127,11 @@ public class ClassifierCoefficients {
             double[] cc = new double[NUMCOEFFICIENTS];
             cc[0] = lr.getRidge();
             for (int i=0; i < coefs.length; i++) {
-                for (int j=0; j < coefs[i].length; j++) {
-                    Log.d("[" + i + "][" + j + "]", "" + coefs[i][j]);
-                }
                 cc[i+1] = coefs[i][0];
             }
             return new ClassifierCoefficients(cc);
         } catch (Exception e) {
-            Log.d("e", e.getLocalizedMessage());
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
